@@ -21,7 +21,7 @@
     --danger:    #9b2e24;
     --staff:     #19180f;
     --radius:    4px;
-    --mh:        52px; /* measure height */
+    --mh:        52px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); font-size: 14px; }
@@ -31,8 +31,9 @@
   /* topbar */
   .topbar { grid-column: 1/-1; background: var(--ink); display: flex; align-items: center; gap: 14px; padding: 0 18px; }
   .logo { font-family: 'IM Fell English', serif; font-size: 18px; color: var(--paper); flex-shrink: 0; }
-  .logo em { color: #999; font-style: italic; }
+  .logo em { color: #888; font-style: italic; }
   .tgap { flex: 1; }
+  .version-tag { font-size: 10px; color: #666; letter-spacing: 0.05em; }
   .tb-btn { background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--paper); padding: 5px 13px; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-family: inherit; }
   .tb-btn:hover { background: rgba(255,255,255,0.1); }
   .tb-btn.prim { background: var(--accent); border-color: var(--accent); }
@@ -49,13 +50,66 @@
   .song-item.active { background: var(--paper-3); border-left-color: var(--accent); }
   .song-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .song-key  { font-size: 11px; color: var(--ink-mute); margin-top: 1px; }
-  .sb-empty  { padding: 20px 14px; font-size: 13px; color: var(--ink-mute); font-style: italic; text-align: center; }
 
   /* main */
   .main { overflow-y: auto; display: flex; flex-direction: column; }
-  .no-song { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-mute); gap: 8px; }
-  .no-song-glyph { font-family: 'IM Fell English', serif; font-size: 52px; opacity: 0.15; }
+
+  /* ── Welcome screen ── */
+  .welcome {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0; padding: 40px 24px; text-align: center;
+  }
+  .wlc-clef {
+    font-family: 'IM Fell English', serif;
+    font-size: 72px; line-height: 1;
+    color: var(--ink); opacity: 0.12;
+    margin-bottom: 28px;
+    user-select: none;
+  }
+  .wlc-title {
+    font-family: 'IM Fell English', serif;
+    font-size: 26px; color: var(--ink);
+    margin-bottom: 10px; line-height: 1.2;
+  }
+  .wlc-sub {
+    font-size: 14px; color: var(--ink-mute);
+    max-width: 320px; line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .wlc-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--ink); color: var(--paper);
+    border: none; border-radius: 6px;
+    padding: 13px 28px; font-size: 15px;
+    font-family: 'IM Fell English', serif;
+    cursor: pointer; transition: opacity 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .wlc-btn:hover { opacity: 0.85; }
+  .wlc-btn-icon {
+    font-size: 20px; line-height: 1;
+    font-family: serif;
+  }
+  /* decorative staff lines behind the welcome */
+  .wlc-staff {
+    position: absolute; left: 0; right: 0;
+    pointer-events: none; opacity: 0.04;
+    display: flex; flex-direction: column; gap: 14px;
+    top: 50%; transform: translateY(-50%);
+  }
+  .wlc-staff-line { height: 1.5px; background: var(--ink); }
+  .welcome { position: relative; overflow: hidden; }
+
+  /* no-song (when songs exist but none selected) */
+  .no-song {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--ink-mute); gap: 8px;
+  }
+  .no-song-glyph { font-family: 'IM Fell English', serif; font-size: 48px; opacity: 0.12; }
   .no-song-txt { font-size: 13px; font-style: italic; }
+
   #songEditor { display: none; flex-direction: column; flex: 1; }
 
   /* meta bar */
@@ -89,140 +143,50 @@
   .sec-rm { border: none; background: none; color: var(--ink-mute); cursor: pointer; font-size: 17px; line-height: 1; padding: 0 3px; margin-left: 2px; }
   .sec-rm:hover { color: var(--danger); }
 
-  /* ── Staff row ──
-     Layout: [barline][measure][barline][measure]…[barline]
-     barlines and measures share the same flex row.
-     Borders top/bottom are on the measure cells only — barlines
-     are vertically centered via align-items:center on the row,
-     then stretched to match the measure height explicitly.        */
-  .staff-row {
-    display: flex;
-    align-items: stretch;   /* children fill the row height */
-    margin-bottom: 10px;
-  }
-
-  /* ── Barline wrappers ──
-     Each barline wrapper is a flex column that draws the visual bar(s).
-     We use border-top/bottom to extend the staff lines through the barline. */
-  .bl-wrap {
-    display: flex;
-    align-items: stretch;
-    flex-shrink: 0;
-    /* extend staff lines across the barline */
-    border-top: 1.5px solid var(--staff);
-    border-bottom: 1.5px solid var(--staff);
-    position: relative;
-  }
-
-  /* single bar */
+  /* staff */
+  .staff-row { display: flex; align-items: stretch; margin-bottom: 10px; }
+  .bl-wrap { display: flex; align-items: stretch; flex-shrink: 0; border-top: 1.5px solid var(--staff); border-bottom: 1.5px solid var(--staff); position: relative; }
   .bl-s { width: 1.5px; background: var(--staff); }
-
-  /* double bar */
   .bl-d { display: flex; gap: 2.5px; }
   .bl-d .b { width: 1.5px; background: var(--staff); }
-
-  /* ritornello start  ||: */
   .bl-rs { display: flex; align-items: center; gap: 2px; padding-right: 4px; }
   .bl-rs .thick { width: 3px; background: var(--staff); align-self: stretch; }
   .bl-rs .thin  { width: 1.5px; background: var(--staff); align-self: stretch; }
   .bl-rs .dots  { display: flex; flex-direction: column; gap: 6px; }
-  /* ritornello end  :|| */
   .bl-re { display: flex; align-items: center; gap: 2px; padding-left: 4px; }
   .bl-re .thick { width: 3px; background: var(--staff); align-self: stretch; }
   .bl-re .thin  { width: 1.5px; background: var(--staff); align-self: stretch; }
   .bl-re .dots  { display: flex; flex-direction: column; gap: 6px; }
   .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--staff); flex-shrink: 0; }
-
-  /* bar-type popup trigger — tiny hover dot on each barline */
-  .bl-trigger {
-    position: absolute; inset: 0;
-    display: flex; align-items: flex-start; justify-content: center;
-    padding-top: 2px;
-    cursor: pointer; z-index: 2;
-  }
+  .bl-trigger { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 2px; cursor: pointer; z-index: 2; }
   .bl-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rule); opacity: 0; transition: opacity 0.15s; }
   .bl-wrap:hover .bl-dot { opacity: 1; }
-  .bl-wrap:hover .bl-dot:hover { background: var(--accent); }
 
-  /* ── Measure cell ── */
-  .measure {
-    flex: 1; min-width: 0;
-    height: var(--mh);
-    position: relative;
-    border-top: 1.5px solid var(--staff);
-    border-bottom: 1.5px solid var(--staff);
-    display: flex;
-    align-items: stretch;
-  }
-
-  /* ── Slots inside measure ──
-     Slots are side-by-side. The SEPARATOR between slots is a faint
-     dashed vertical line — clearly lighter than the solid staff barlines. */
+  .measure { flex: 1; min-width: 0; height: var(--mh); position: relative; border-top: 1.5px solid var(--staff); border-bottom: 1.5px solid var(--staff); display: flex; align-items: stretch; }
   .slots { display: flex; width: 100%; align-items: center; }
   .slot  { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+  .slot + .slot::before { content: ''; position: absolute; left: 0; top: 18%; height: 64%; width: 1px; background: repeating-linear-gradient(to bottom, var(--rule-soft) 0, var(--rule-soft) 3px, transparent 3px, transparent 6px); }
 
-  /* dashed separator only between slots, never at edges */
-  .slot + .slot::before {
-    content: '';
-    position: absolute; left: 0; top: 18%; height: 64%;
-    width: 1px;
-    background: repeating-linear-gradient(
-      to bottom,
-      var(--rule-soft) 0, var(--rule-soft) 3px,
-      transparent 3px, transparent 6px
-    );
-  }
-
-  /* slot controls row (below the measure, one per slot) */
   .slot-ctrls { display: flex; }
-  .slot-ctrl-cell {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    gap: 3px; padding: 3px 0;
-  }
-  .slot-opt {
-    border: 1px solid var(--rule); background: var(--paper); color: var(--ink-mute);
-    font-size: 10px; padding: 1px 5px; cursor: pointer; font-family: 'Inter', monospace;
-    border-radius: 3px; line-height: 1.5;
-  }
+  .slot-ctrl-cell { flex: 1; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 3px 0; }
+  .slot-opt { border: 1px solid var(--rule); background: var(--paper); color: var(--ink-mute); font-size: 10px; padding: 1px 5px; cursor: pointer; font-family: 'Inter', monospace; border-radius: 3px; line-height: 1.5; }
   .slot-opt.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  /* label before slot opts */
   .slot-ctrl-lbl { font-size: 10px; color: var(--ink-mute); }
 
-  /* chord input */
-  .chord-input {
-    border: none; background: transparent; text-align: center;
-    font-family: 'IM Fell English', serif; font-size: 18px; color: var(--ink);
-    outline: none; width: 100%; padding: 0 4px; cursor: text;
-  }
+  .chord-input { border: none; background: transparent; text-align: center; font-family: 'IM Fell English', serif; font-size: 18px; color: var(--ink); outline: none; width: 100%; padding: 0 4px; cursor: text; }
   .chord-input::placeholder { color: var(--rule); }
   .chord-input:focus { background: rgba(45,95,166,0.04); }
 
-  /* casa bracket */
-  .casa-wrap {
-    position: absolute; top: -17px; left: 0; right: 0; height: 15px;
-    border-top: 1.5px solid var(--staff); border-left: 1.5px solid var(--staff);
-  }
+  .casa-wrap { position: absolute; top: -17px; left: 0; right: 0; height: 15px; border-top: 1.5px solid var(--staff); border-left: 1.5px solid var(--staff); }
   .casa-wrap.closed { border-right: 1.5px solid var(--staff); }
   .casa-lbl { font-size: 10px; font-weight: 500; color: var(--ink); padding-left: 3px; line-height: 1.5; }
 
-  /* bar-type popup */
-  .bl-popup {
-    position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%);
-    background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius);
-    padding: 5px 7px; display: none; flex-direction: column; gap: 3px;
-    z-index: 20; min-width: 155px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
+  .bl-popup { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 5px 7px; display: none; flex-direction: column; gap: 3px; z-index: 20; min-width: 155px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   .bl-popup.open { display: flex; }
   .bp-lbl { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1px; }
-  .bp-item {
-    background: none; border: 1px solid var(--rule); border-radius: 3px;
-    padding: 4px 8px; font-size: 11px; font-family: 'Inter', monospace;
-    cursor: pointer; text-align: left; color: var(--ink);
-  }
+  .bp-item { background: none; border: 1px solid var(--rule); border-radius: 3px; padding: 4px 8px; font-size: 11px; font-family: 'Inter', monospace; cursor: pointer; text-align: left; color: var(--ink); }
   .bp-item:hover, .bp-item.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-  /* toast */
   .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: var(--radius); font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
   .toast.show { opacity: 1; }
 
@@ -235,6 +199,7 @@
 
   <header class="topbar">
     <div class="logo">cifra<em>gem</em></div>
+    <span class="version-tag">v1.2</span>
     <div class="tgap"></div>
     <button class="tb-btn prim" onclick="exportPDF()">↓ Exportar PDF</button>
   </header>
@@ -247,11 +212,33 @@
     <div id="songList"></div>
   </aside>
 
-  <main class="main">
-    <div class="no-song" id="noSong">
-      <div class="no-song-glyph">𝄞</div>
-      <div class="no-song-txt">Selecione uma música ou crie uma nova</div>
+  <main class="main" id="mainArea">
+
+    <!-- Welcome (shown when library is empty) -->
+    <div class="welcome" id="welcomeScreen" style="display:none;">
+      <div class="wlc-staff" aria-hidden="true">
+        <div class="wlc-staff-line"></div>
+        <div class="wlc-staff-line"></div>
+        <div class="wlc-staff-line"></div>
+        <div class="wlc-staff-line"></div>
+        <div class="wlc-staff-line"></div>
+      </div>
+      <div class="wlc-clef" aria-hidden="true">𝄞</div>
+      <div class="wlc-title">Comece a sua primeira cifragem</div>
+      <div class="wlc-sub">Monte a estrutura da música, defina os compassos e preencha os acordes — tudo salvo automaticamente.</div>
+      <button class="wlc-btn" onclick="newSong()">
+        <span class="wlc-btn-icon">▷</span>
+        Nova música
+      </button>
     </div>
+
+    <!-- No song selected (when library has songs but none active) -->
+    <div class="no-song" id="noSong" style="display:none;">
+      <div class="no-song-glyph">𝄽</div>
+      <div class="no-song-txt">Selecione uma música na lista</div>
+    </div>
+
+    <!-- Editor -->
     <div id="songEditor">
       <div class="meta-bar">
         <div class="mf">
@@ -267,6 +254,7 @@
       </div>
       <div class="sheet" id="sheet"></div>
     </div>
+
   </main>
 </div>
 <div class="toast" id="toast"></div>
@@ -280,15 +268,13 @@ let openPopup = null;
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
 function save() { localStorage.setItem(STORE, JSON.stringify(songs)); }
 function song() { return songs.find(s => s.id === cur); }
-
-/* Each measure stores its own slot count independently */
 function defaultMeasure() { return { slots: 1, bar: 'single', chords: {}, casa: null }; }
 
 const BAR_TYPES = [
-  { id: 'single',    sym: '|',    label: 'Barra simples' },
-  { id: 'double',    sym: '||',   label: 'Barra dupla' },
-  { id: 'rit-start', sym: '||:',  label: 'Início ritornello' },
-  { id: 'rit-end',   sym: ':||',  label: 'Fim ritornello' },
+  { id: 'single',    sym: '|',   label: 'Barra simples' },
+  { id: 'double',    sym: '||',  label: 'Barra dupla' },
+  { id: 'rit-start', sym: '||:', label: 'Início ritornello' },
+  { id: 'rit-end',   sym: ':||', label: 'Fim ritornello' },
 ];
 
 /* ── Song CRUD ── */
@@ -298,12 +284,14 @@ function newSong() {
     sections: [{ id: uid(), name: 'Intro', measures: [defaultMeasure(), defaultMeasure(), defaultMeasure(), defaultMeasure()] }]
   };
   songs.unshift(s); save(); renderSidebar(); selectSong(s.id);
+  /* focus title after a tick so the editor is rendered */
+  setTimeout(() => { const t = document.getElementById('fTitle'); if (t) { t.select(); } }, 60);
 }
 
 function deleteSong() {
   if (!cur || !confirm('Excluir esta música?')) return;
   songs = songs.filter(s => s.id !== cur);
-  save(); cur = null; renderSidebar(); showNoSong();
+  save(); cur = null; renderSidebar(); showState();
 }
 
 function selectSong(id) { cur = id; renderSidebar(); renderEditor(); }
@@ -318,7 +306,6 @@ function saveMeta() {
 /* ── Sidebar ── */
 function renderSidebar() {
   const el = document.getElementById('songList');
-  if (!songs.length) { el.innerHTML = '<div class="sb-empty">Nenhuma música.<br>Clique em "+ Nova".</div>'; return; }
   el.innerHTML = songs.map(s => `
     <div class="song-item ${s.id===cur?'active':''}" onclick="selectSong('${s.id}')">
       <div class="song-name">${x(s.title||'Sem título')}</div>
@@ -326,16 +313,22 @@ function renderSidebar() {
     </div>`).join('');
 }
 
-/* ── Editor ── */
-function showNoSong() {
-  document.getElementById('noSong').style.display = 'flex';
-  document.getElementById('songEditor').style.display = 'none';
+/* ── State routing ── */
+function showState() {
+  const hasSongs = songs.length > 0;
+  const hasCur   = !!song();
+  document.getElementById('welcomeScreen').style.display = (!hassongs) ? 'flex'  : 'none';
+  document.getElementById('noSong').style.display        = (hasongs && !hasCur) ? 'flex'  : 'none';
+  document.getElementById('songEditor').style.display    = hasCur               ? 'flex'  : 'none';
 }
 
 function renderEditor() {
   const s = song();
-  document.getElementById('noSong').style.display  = s ? 'none' : 'flex';
-  document.getElementById('songEditor').style.display = s ? 'flex' : 'none';
+  // fix typo in showState: hasongs -> hasongs correction below
+  const hasSongs = songs.length > 0;
+  document.getElementById('welcomeScreen').style.display = (!hasSongs)          ? 'flex' : 'none';
+  document.getElementById('noSong').style.display        = (hasSongs && !s)     ? 'flex' : 'none';
+  document.getElementById('songEditor').style.display    = s                    ? 'flex' : 'none';
   if (!s) return;
   document.getElementById('fTitle').value = s.title || '';
   document.getElementById('fKey').value   = s.key   || '';
@@ -355,17 +348,14 @@ function renderSheet() {
 
 /* ── Build section ── */
 function buildSection(sec) {
-  /* Migrate old format if needed */
   if (!Array.isArray(sec.measures)) {
     const count = sec.measures || 4;
     sec.measures = Array.from({length: count}, () => defaultMeasure());
   }
-
   const wrap = document.createElement('div');
   wrap.className = 'sec-block';
   wrap.id = 'sec-' + sec.id;
 
-  /* header row */
   const head = document.createElement('div');
   head.className = 'sec-head';
 
@@ -377,7 +367,6 @@ function buildSection(sec) {
 
   const line = document.createElement('div'); line.className = 'sec-line';
 
-  /* compass count controls */
   const ctrl = document.createElement('div'); ctrl.className = 'sec-ctrl';
   const cLbl = document.createElement('span'); cLbl.className = 'sc-lbl'; cLbl.textContent = 'compassos:';
   const cMinus = document.createElement('button'); cMinus.className = 'sc-btn'; cMinus.textContent = '−';
@@ -398,7 +387,6 @@ function buildSection(sec) {
   staffWrap.id = 'staff-' + sec.id;
   wrap.appendChild(staffWrap);
   buildStaff(staffWrap, sec);
-
   return wrap;
 }
 
@@ -408,7 +396,6 @@ function buildStaff(container, sec) {
   const measures = sec.measures;
   const total = measures.length;
 
-  /* split into rows of 4 */
   for (let rowStart = 0; rowStart < total; rowStart += 4) {
     const rowMeasures = measures.slice(rowStart, rowStart + 4);
     const rowEl = document.createElement('div');
@@ -419,14 +406,11 @@ function buildStaff(container, sec) {
       const isLastInRow = localIdx === rowMeasures.length - 1;
       const isLastOverall = globalIdx === total - 1;
 
-      /* ── Left barline ── */
       rowEl.appendChild(makeBarline(m.bar || 'single', globalIdx, sec));
 
-      /* ── Measure cell ── */
       const mCell = document.createElement('div');
       mCell.className = 'measure';
 
-      /* casa bracket */
       if (m.casa) {
         const cb = document.createElement('div');
         const nextCasa = globalIdx + 1 < total ? measures[globalIdx+1].casa : null;
@@ -435,7 +419,6 @@ function buildStaff(container, sec) {
         mCell.appendChild(cb);
       }
 
-      /* slots */
       const slotsEl = document.createElement('div');
       slotsEl.className = 'slots';
       const n = m.slots || 1;
@@ -462,23 +445,18 @@ function buildStaff(container, sec) {
       mCell.appendChild(slotsEl);
       rowEl.appendChild(mCell);
 
-      /* ── Right barline (only at end of row) ── */
       if (isLastInRow) {
-        /* determine type: if next measure has rit-end, show it here as right bar */
         let rType = isLastOverall ? 'double' : 'single';
-        /* check if this measure itself is rit-end */
         if (m.bar === 'rit-end') rType = 'rit-end';
         rowEl.appendChild(makeBarlineRight(rType));
       }
     });
 
-    /* slot-count controls row — one cell per measure */
+    /* slot controls per measure */
     const ctrlRow = document.createElement('div');
     ctrlRow.className = 'slot-ctrls';
-    /* spacer for left barline */
     ctrlRow.appendChild(Object.assign(document.createElement('div'), {style: 'width:8px;flex-shrink:0'}));
-    rowMeasures.forEach((m, localIdx) => {
-      const globalIdx = rowStart + localIdx;
+    rowMeasures.forEach((m) => {
       const cell = document.createElement('div');
       cell.className = 'slot-ctrl-cell';
       const lbl = document.createElement('span');
@@ -491,7 +469,6 @@ function buildStaff(container, sec) {
         b.textContent = n;
         b.onclick = () => {
           m.slots = n;
-          /* clear chords that exceed new slot count */
           if (m.chords) Object.keys(m.chords).forEach(k => { if (parseInt(k) >= n) delete m.chords[k]; });
           save();
           rebuildStaff(sec);
@@ -505,7 +482,7 @@ function buildStaff(container, sec) {
   }
 }
 
-/* ── Barline builders ── */
+/* ── Barlines ── */
 function barlineInnerHTML(type) {
   if (type === 'rit-start') return `<div class="bl-rs"><div class="thin"></div><div class="thick"></div><div class="dots"><div class="dot"></div><div class="dot"></div></div></div>`;
   if (type === 'rit-end')   return `<div class="bl-re"><div class="dots"><div class="dot"></div><div class="dot"></div></div><div class="thin"></div><div class="thick"></div></div>`;
@@ -523,7 +500,6 @@ function makeBarline(type, mIdx, sec) {
   inner.innerHTML = barlineInnerHTML(type);
   wrap.appendChild(inner);
 
-  /* popup */
   const popup = document.createElement('div');
   popup.className = 'bl-popup';
   popup.innerHTML = `<span class="bp-lbl">Tipo de barra</span>` +
@@ -542,7 +518,6 @@ function makeBarline(type, mIdx, sec) {
   });
   wrap.appendChild(popup);
 
-  /* trigger dot */
   const trigger = document.createElement('div');
   trigger.className = 'bl-trigger';
   trigger.innerHTML = '<div class="bl-dot"></div>';
@@ -554,28 +529,20 @@ function makeBarline(type, mIdx, sec) {
     openPopup = isOpen ? null : popup;
   };
   wrap.appendChild(trigger);
-
   return wrap;
 }
 
 function makeBarlineRight(type) {
   const wrap = document.createElement('div');
   wrap.className = 'bl-wrap';
-  wrap.style.pointerEvents = 'none'; /* right-end bars are display only */
+  wrap.style.pointerEvents = 'none';
   wrap.innerHTML = barlineInnerHTML(type);
   return wrap;
 }
 
 /* ── Helpers ── */
-function rebuildStaff(sec) {
-  const w = document.getElementById('staff-' + sec.id);
-  if (w) buildStaff(w, sec);
-}
-
-function updateCount(sec) {
-  const el = document.getElementById('cnt-' + sec.id);
-  if (el) el.textContent = sec.measures.length;
-}
+function rebuildStaff(sec) { const w = document.getElementById('staff-' + sec.id); if (w) buildStaff(w, sec); }
+function updateCount(sec)  { const el = document.getElementById('cnt-' + sec.id); if (el) el.textContent = sec.measures.length; }
 
 function addSection() {
   const s = song(); if (!s) return;
@@ -601,31 +568,11 @@ function exportPDF() {
   if (!s) { toast('Selecione uma música primeiro.'); return; }
   const data = s.sections.map(sec => ({
     name: sec.name,
-    measures: sec.measures.map(m => ({
-      bar: m.bar || 'single',
-      slots: m.slots || 1,
-      chords: m.chords || {},
-      casa: m.casa || null
-    }))
+    measures: sec.measures.map(m => ({ bar: m.bar||'single', slots: m.slots||1, chords: m.chords||{}, casa: m.casa||null }))
   }));
   const slug = (s.title||'cifragem').replace(/\s+/g,'_').toLowerCase();
   if (typeof sendPrompt === 'function') {
-    sendPrompt(`Gere um PDF de cifragem com Python + reportlab em /mnt/user-data/outputs/${slug}.pdf
-
-TÍTULO: ${s.title||'Cifragem'}
-TOM: ${s.key||'não especificado'}
-
-ESTRUTURA JSON:
-${JSON.stringify(data, null, 2)}
-
-LAYOUT A4, margens 2cm, Helvetica:
-- Cabeçalho: título 18pt negrito centralizado + tom 11pt à direita
-- Seção: nome 10pt negrito maiúsculo + linha fina
-- 4 compassos por linha, altura 42pt
-- Cada compasso dividido em (slots) partes iguais por linhas tracejadas FINAS (não barras)
-- Chord em Helvetica-Bold 14pt centralizado em cada slot; se vazio, traço cinza claro
-- Barras: single=1.5pt, double=2×1.5pt, rit-start=thick+thin+dots, rit-end=dots+thin+thick
-- Casa: colchete 3 lados com label`);
+    sendPrompt(`Gere um PDF de cifragem com Python + reportlab em /mnt/user-data/outputs/${slug}.pdf\n\nTÍTULO: ${s.title||'Cifragem'}\nTOM: ${s.key||'não especificado'}\n\nESTRUTURA JSON:\n${JSON.stringify(data, null, 2)}\n\nLAYOUT A4, margens 2cm, Helvetica:\n- Cabeçalho: título 18pt negrito centralizado + tom 11pt à direita\n- Seção: nome 10pt negrito maiúsculo + linha fina\n- 4 compassos por linha, altura 42pt\n- Cada compasso dividido em (slots) partes iguais por linhas tracejadas FINAS\n- Chord em Helvetica-Bold 14pt centralizado em cada slot; se vazio, traço cinza claro\n- Barras: single=1.5pt, double=2×1.5pt, rit-start=thick+thin+dots, rit-end=dots+thin+thick\n- Casa: colchete 3 lados com label`);
     toast('Enviado — PDF gerado em instantes.');
   } else {
     toast('Função disponível ao rodar via Claude.');
@@ -642,7 +589,12 @@ function toast(msg) {
 
 /* ── Init ── */
 renderSidebar();
-if (songs.length) selectSong(songs[0].id); else showNoSong();
+if (songs.length) selectSong(songs[0].id);
+else {
+  document.getElementById('welcomeScreen').style.display = 'flex';
+  document.getElementById('noSong').style.display        = 'none';
+  document.getElementById('songEditor').style.display    = 'none';
+}
 </script>
 </body>
 </html>

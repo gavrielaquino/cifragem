@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cifragem — Template</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500&display=swap');
+
+  :root {
+    --ink:       #19180f;
+    --ink-soft:  #4a4435;
+    --ink-mute:  #9b9180;
+    --paper:     #f8f4ee;
+    --paper-2:   #ede8df;
+    --paper-3:   #e1dbd0;
+    --rule:      #ccc4b5;
+    --rule-soft: #ddd8ce;
+    --accent:    #2d5fa6;
+    --accent-h:  #1e4480;
+    --danger:    #9b2e24;
+    --staff:     #19180f;
+    --radius:    4px;
+    --mh:        52px; /* measure height */
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); font-size: 14px; }
+
+  .app { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 46px 1fr; height: 100vh; overflow: hidden; }
+
+  /* topbar */
+  .topbar { grid-column: 1/-1; background: var(--ink); display: flex; align-items: center; gap: 14px; padding: 0 18px; }
+  .logo { font-family: 'IM Fell English', serif; font-size: 18px; color: var(--paper); flex-shrink: 0; }
+  .logo em { color: #999; font-style: italic; }
+  .tgap { flex: 1; }
+  .tb-btn { background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--paper); padding: 5px 13px; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-family: inherit; }
+  .tb-btn:hover { background: rgba(255,255,255,0.1); }
+  .tb-btn.prim { background: var(--accent); border-color: var(--accent); }
+  .tb-btn.prim:hover { background: var(--accent-h); }
+
+  /* sidebar */
+  .sidebar { background: var(--paper-2); border-right: 1px solid var(--rule); overflow-y: auto; display: flex; flex-direction: column; }
+  .sb-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
+  .sb-title { font-family: 'IM Fell English', serif; font-size: 12px; color: var(--ink-soft); letter-spacing: 0.06em; text-transform: uppercase; }
+  .sb-new { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .sb-new:hover { background: var(--accent-h); }
+  .song-item { padding: 8px 14px; cursor: pointer; border-left: 3px solid transparent; }
+  .song-item:hover { background: var(--paper-3); }
+  .song-item.active { background: var(--paper-3); border-left-color: var(--accent); }
+  .song-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-key  { font-size: 11px; color: var(--ink-mute); margin-top: 1px; }
+  .sb-empty  { padding: 20px 14px; font-size: 13px; color: var(--ink-mute); font-style: italic; text-align: center; }
+
+  /* main */
+  .main { overflow-y: auto; display: flex; flex-direction: column; }
+  .no-song { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-mute); gap: 8px; }
+  .no-song-glyph { font-family: 'IM Fell English', serif; font-size: 52px; opacity: 0.15; }
+  .no-song-txt { font-size: 13px; font-style: italic; }
+  #songEditor { display: none; flex-direction: column; flex: 1; }
+
+  /* meta bar */
+  .meta-bar { display: flex; align-items: flex-end; gap: 14px; padding: 11px 22px 10px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+  .mf { display: flex; flex-direction: column; gap: 3px; }
+  .ml { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; }
+  .mi { border: none; border-bottom: 1px solid var(--rule); background: transparent; outline: none; font-family: 'IM Fell English', serif; font-size: 18px; color: var(--ink); padding: 2px 0; width: 200px; }
+  .mi.sm { font-family: 'Inter', sans-serif; font-size: 13px; width: 90px; }
+  .mi:focus { border-bottom-color: var(--accent); }
+  .mgap { flex: 1; }
+  .del-btn { border: 1px solid var(--rule); background: none; color: var(--ink-mute); padding: 5px 10px; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-family: inherit; }
+  .del-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* sheet */
+  .sheet { flex: 1; padding: 20px 24px 48px; }
+  .add-sec-row { display: flex; justify-content: center; margin-top: 16px; }
+  .add-sec-btn { border: 1px dashed var(--rule); background: none; color: var(--ink-mute); padding: 7px 20px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-family: inherit; }
+  .add-sec-btn:hover { background: var(--paper-2); }
+
+  /* section */
+  .sec-block { margin-bottom: 28px; }
+  .sec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .sec-name-input { border: none; border-bottom: 1px solid var(--rule-soft); background: transparent; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); outline: none; width: 120px; padding: 2px 0; }
+  .sec-name-input:focus { border-bottom-color: var(--accent); }
+  .sec-line { flex: 1; height: 1px; background: var(--rule-soft); }
+  .sec-ctrl { display: flex; align-items: center; gap: 5px; }
+  .sc-lbl { font-size: 11px; color: var(--ink-mute); }
+  .sc-btn { width: 20px; height: 20px; border: 1px solid var(--rule); background: var(--paper-2); color: var(--ink-soft); border-radius: 3px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; font-family: inherit; line-height: 1; }
+  .sc-btn:hover { background: var(--paper-3); }
+  .sc-val { font-size: 12px; font-weight: 500; min-width: 16px; text-align: center; color: var(--ink); }
+  .sec-rm { border: none; background: none; color: var(--ink-mute); cursor: pointer; font-size: 17px; line-height: 1; padding: 0 3px; margin-left: 2px; }
+  .sec-rm:hover { color: var(--danger); }
+
+  /* ── Staff row ──
+     Layout: [barline][measure][barline][measure]…[barline]
+     barlines and measures share the same flex row.
+     Borders top/bottom are on the measure cells only — barlines
+     are vertically centered via align-items:center on the row,
+     then stretched to match the measure height explicitly.        */
+  .staff-row {
+    display: flex;
+    align-items: stretch;   /* children fill the row height */
+    margin-bottom: 10px;
+  }
+
+  /* ── Barline wrappers ──
+     Each barline wrapper is a flex column that draws the visual bar(s).
+     We use border-top/bottom to extend the staff lines through the barline. */
+  .bl-wrap {
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    /* extend staff lines across the barline */
+    border-top: 1.5px solid var(--staff);
+    border-bottom: 1.5px solid var(--staff);
+    position: relative;
+  }
+
+  /* single bar */
+  .bl-s { width: 1.5px; background: var(--staff); }
+
+  /* double bar */
+  .bl-d { display: flex; gap: 2.5px; }
+  .bl-d .b { width: 1.5px; background: var(--staff); }
+
+  /* ritornello start  ||: */
+  .bl-rs { display: flex; align-items: center; gap: 2px; padding-right: 4px; }
+  .bl-rs .thick { width: 3px; background: var(--staff); align-self: stretch; }
+  .bl-rs .thin  { width: 1.5px; background: var(--staff); align-self: stretch; }
+  .bl-rs .dots  { display: flex; flex-direction: column; gap: 6px; }
+  /* ritornello end  :|| */
+  .bl-re { display: flex; align-items: center; gap: 2px; padding-left: 4px; }
+  .bl-re .thick { width: 3px; background: var(--staff); align-self: stretch; }
+  .bl-re .thin  { width: 1.5px; background: var(--staff); align-self: stretch; }
+  .bl-re .dots  { display: flex; flex-direction: column; gap: 6px; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--staff); flex-shrink: 0; }
+
+  /* bar-type popup trigger — tiny hover dot on each barline */
+  .bl-trigger {
+    position: absolute; inset: 0;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 2px;
+    cursor: pointer; z-index: 2;
+  }
+  .bl-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rule); opacity: 0; transition: opacity 0.15s; }
+  .bl-wrap:hover .bl-dot { opacity: 1; }
+  .bl-wrap:hover .bl-dot:hover { background: var(--accent); }
+
+  /* ── Measure cell ── */
+  .measure {
+    flex: 1; min-width: 0;
+    height: var(--mh);
+    position: relative;
+    border-top: 1.5px solid var(--staff);
+    border-bottom: 1.5px solid var(--staff);
+    display: flex;
+    align-items: stretch;
+  }
+
+  /* ── Slots inside measure ──
+     Slots are side-by-side. The SEPARATOR between slots is a faint
+     dashed vertical line — clearly lighter than the solid staff barlines. */
+  .slots { display: flex; width: 100%; align-items: center; }
+  .slot  { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+
+  /* dashed separator only between slots, never at edges */
+  .slot + .slot::before {
+    content: '';
+    position: absolute; left: 0; top: 18%; height: 64%;
+    width: 1px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--rule-soft) 0, var(--rule-soft) 3px,
+      transparent 3px, transparent 6px
+    );
+  }
+
+  /* slot controls row (below the measure, one per slot) */
+  .slot-ctrls { display: flex; }
+  .slot-ctrl-cell {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 3px; padding: 3px 0;
+  }
+  .slot-opt {
+    border: 1px solid var(--rule); background: var(--paper); color: var(--ink-mute);
+    font-size: 10px; padding: 1px 5px; cursor: pointer; font-family: 'Inter', monospace;
+    border-radius: 3px; line-height: 1.5;
+  }
+  .slot-opt.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  /* label before slot opts */
+  .slot-ctrl-lbl { font-size: 10px; color: var(--ink-mute); }
+
+  /* chord input */
+  .chord-input {
+    border: none; background: transparent; text-align: center;
+    font-family: 'IM Fell English', serif; font-size: 18px; color: var(--ink);
+    outline: none; width: 100%; padding: 0 4px; cursor: text;
+  }
+  .chord-input::placeholder { color: var(--rule); }
+  .chord-input:focus { background: rgba(45,95,166,0.04); }
+
+  /* casa bracket */
+  .casa-wrap {
+    position: absolute; top: -17px; left: 0; right: 0; height: 15px;
+    border-top: 1.5px solid var(--staff); border-left: 1.5px solid var(--staff);
+  }
+  .casa-wrap.closed { border-right: 1.5px solid var(--staff); }
+  .casa-lbl { font-size: 10px; font-weight: 500; color: var(--ink); padding-left: 3px; line-height: 1.5; }
+
+  /* bar-type popup */
+  .bl-popup {
+    position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%);
+    background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 5px 7px; display: none; flex-direction: column; gap: 3px;
+    z-index: 20; min-width: 155px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  .bl-popup.open { display: flex; }
+  .bp-lbl { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1px; }
+  .bp-item {
+    background: none; border: 1px solid var(--rule); border-radius: 3px;
+    padding: 4px 8px; font-size: 11px; font-family: 'Inter', monospace;
+    cursor: pointer; text-align: left; color: var(--ink);
+  }
+  .bp-item:hover, .bp-item.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* toast */
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: var(--radius); font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+
+  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+  @media (max-width: 640px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="logo">cifra<em>gem</em></div>
+    <div class="tgap"></div>
+    <button class="tb-btn prim" onclick="exportPDF()">↓ Exportar PDF</button>
+  </header>
+
+  <aside class="sidebar">
+    <div class="sb-head">
+      <span class="sb-title">Músicas</span>
+      <button class="sb-new" onclick="newSong()">+ Nova</button>
+    </div>
+    <div id="songList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="no-song" id="noSong">
+      <div class="no-song-glyph">𝄞</div>
+      <div class="no-song-txt">Selecione uma música ou crie uma nova</div>
+    </div>
+    <div id="songEditor">
+      <div class="meta-bar">
+        <div class="mf">
+          <div class="ml">Título</div>
+          <input class="mi" id="fTitle" placeholder="Nome da música" oninput="saveMeta()" />
+        </div>
+        <div class="mf">
+          <div class="ml">Tom</div>
+          <input class="mi sm" id="fKey" placeholder="Ex: G maior" oninput="saveMeta()" />
+        </div>
+        <div class="mgap"></div>
+        <button class="del-btn" onclick="deleteSong()">Excluir</button>
+      </div>
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE = 'cifragem_v2';
+let songs = (() => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } })();
+let cur = null;
+let openPopup = null;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function save() { localStorage.setItem(STORE, JSON.stringify(songs)); }
+function song() { return songs.find(s => s.id === cur); }
+
+/* Each measure stores its own slot count independently */
+function defaultMeasure() { return { slots: 1, bar: 'single', chords: {}, casa: null }; }
+
+const BAR_TYPES = [
+  { id: 'single',    sym: '|',    label: 'Barra simples' },
+  { id: 'double',    sym: '||',   label: 'Barra dupla' },
+  { id: 'rit-start', sym: '||:',  label: 'Início ritornello' },
+  { id: 'rit-end',   sym: ':||',  label: 'Fim ritornello' },
+];
+
+/* ── Song CRUD ── */
+function newSong() {
+  const s = {
+    id: uid(), title: 'Nova música', key: '',
+    sections: [{ id: uid(), name: 'Intro', measures: [defaultMeasure(), defaultMeasure(), defaultMeasure(), defaultMeasure()] }]
+  };
+  songs.unshift(s); save(); renderSidebar(); selectSong(s.id);
+}
+
+function deleteSong() {
+  if (!cur || !confirm('Excluir esta música?')) return;
+  songs = songs.filter(s => s.id !== cur);
+  save(); cur = null; renderSidebar(); showNoSong();
+}
+
+function selectSong(id) { cur = id; renderSidebar(); renderEditor(); }
+
+function saveMeta() {
+  const s = song(); if (!s) return;
+  s.title = document.getElementById('fTitle').value;
+  s.key   = document.getElementById('fKey').value;
+  save(); renderSidebar();
+}
+
+/* ── Sidebar ── */
+function renderSidebar() {
+  const el = document.getElementById('songList');
+  if (!songs.length) { el.innerHTML = '<div class="sb-empty">Nenhuma música.<br>Clique em "+ Nova".</div>'; return; }
+  el.innerHTML = songs.map(s => `
+    <div class="song-item ${s.id===cur?'active':''}" onclick="selectSong('${s.id}')">
+      <div class="song-name">${x(s.title||'Sem título')}</div>
+      <div class="song-key">${x(s.key||'—')}</div>
+    </div>`).join('');
+}
+
+/* ── Editor ── */
+function showNoSong() {
+  document.getElementById('noSong').style.display = 'flex';
+  document.getElementById('songEditor').style.display = 'none';
+}
+
+function renderEditor() {
+  const s = song();
+  document.getElementById('noSong').style.display  = s ? 'none' : 'flex';
+  document.getElementById('songEditor').style.display = s ? 'flex' : 'none';
+  if (!s) return;
+  document.getElementById('fTitle').value = s.title || '';
+  document.getElementById('fKey').value   = s.key   || '';
+  renderSheet();
+}
+
+function renderSheet() {
+  const s = song(); if (!s) return;
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = '';
+  s.sections.forEach(sec => sheet.appendChild(buildSection(sec)));
+  const row = document.createElement('div');
+  row.className = 'add-sec-row';
+  row.innerHTML = '<button class="add-sec-btn" onclick="addSection()">+ Adicionar seção</button>';
+  sheet.appendChild(row);
+}
+
+/* ── Build section ── */
+function buildSection(sec) {
+  /* Migrate old format if needed */
+  if (!Array.isArray(sec.measures)) {
+    const count = sec.measures || 4;
+    sec.measures = Array.from({length: count}, () => defaultMeasure());
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'sec-block';
+  wrap.id = 'sec-' + sec.id;
+
+  /* header row */
+  const head = document.createElement('div');
+  head.className = 'sec-head';
+
+  const nameIn = document.createElement('input');
+  nameIn.className = 'sec-name-input';
+  nameIn.value = sec.name || '';
+  nameIn.placeholder = 'Nome da seção';
+  nameIn.oninput = () => { sec.name = nameIn.value; save(); };
+
+  const line = document.createElement('div'); line.className = 'sec-line';
+
+  /* compass count controls */
+  const ctrl = document.createElement('div'); ctrl.className = 'sec-ctrl';
+  const cLbl = document.createElement('span'); cLbl.className = 'sc-lbl'; cLbl.textContent = 'compassos:';
+  const cMinus = document.createElement('button'); cMinus.className = 'sc-btn'; cMinus.textContent = '−';
+  cMinus.onclick = () => { if (sec.measures.length > 1) { sec.measures.pop(); save(); rebuildStaff(sec); updateCount(sec); } };
+  const cVal = document.createElement('span'); cVal.className = 'sc-val'; cVal.id = 'cnt-'+sec.id; cVal.textContent = sec.measures.length;
+  const cPlus = document.createElement('button'); cPlus.className = 'sc-btn'; cPlus.textContent = '+';
+  cPlus.onclick = () => { sec.measures.push(defaultMeasure()); save(); rebuildStaff(sec); updateCount(sec); };
+
+  const rmBtn = document.createElement('button');
+  rmBtn.className = 'sec-rm'; rmBtn.title = 'Remover seção'; rmBtn.textContent = '×';
+  rmBtn.onclick = () => removeSection(sec.id);
+
+  ctrl.append(cLbl, cMinus, cVal, cPlus);
+  head.append(nameIn, line, ctrl, rmBtn);
+  wrap.appendChild(head);
+
+  const staffWrap = document.createElement('div');
+  staffWrap.id = 'staff-' + sec.id;
+  wrap.appendChild(staffWrap);
+  buildStaff(staffWrap, sec);
+
+  return wrap;
+}
+
+/* ── Build staff ── */
+function buildStaff(container, sec) {
+  container.innerHTML = '';
+  const measures = sec.measures;
+  const total = measures.length;
+
+  /* split into rows of 4 */
+  for (let rowStart = 0; rowStart < total; rowStart += 4) {
+    const rowMeasures = measures.slice(rowStart, rowStart + 4);
+    const rowEl = document.createElement('div');
+    rowEl.className = 'staff-row';
+
+    rowMeasures.forEach((m, localIdx) => {
+      const globalIdx = rowStart + localIdx;
+      const isLastInRow = localIdx === rowMeasures.length - 1;
+      const isLastOverall = globalIdx === total - 1;
+
+      /* ── Left barline ── */
+      rowEl.appendChild(makeBarline(m.bar || 'single', globalIdx, sec));
+
+      /* ── Measure cell ── */
+      const mCell = document.createElement('div');
+      mCell.className = 'measure';
+
+      /* casa bracket */
+      if (m.casa) {
+        const cb = document.createElement('div');
+        const nextCasa = globalIdx + 1 < total ? measures[globalIdx+1].casa : null;
+        cb.className = 'casa-wrap' + (!nextCasa || nextCasa !== m.casa ? ' closed' : '');
+        cb.innerHTML = `<span class="casa-lbl">${m.casa}.</span>`;
+        mCell.appendChild(cb);
+      }
+
+      /* slots */
+      const slotsEl = document.createElement('div');
+      slotsEl.className = 'slots';
+      const n = m.slots || 1;
+      for (let sl = 0; sl < n; sl++) {
+        const key = String(sl);
+        const inp = document.createElement('input');
+        inp.className = 'chord-input';
+        inp.type = 'text';
+        inp.placeholder = '—';
+        inp.value = (m.chords && m.chords[key]) || '';
+        inp.setAttribute('autocomplete','off');
+        inp.setAttribute('autocorrect','off');
+        inp.setAttribute('autocapitalize','characters');
+        inp.addEventListener('input', () => {
+          if (!m.chords) m.chords = {};
+          m.chords[key] = inp.value;
+          save();
+        });
+        const slotDiv = document.createElement('div');
+        slotDiv.className = 'slot';
+        slotDiv.appendChild(inp);
+        slotsEl.appendChild(slotDiv);
+      }
+      mCell.appendChild(slotsEl);
+      rowEl.appendChild(mCell);
+
+      /* ── Right barline (only at end of row) ── */
+      if (isLastInRow) {
+        /* determine type: if next measure has rit-end, show it here as right bar */
+        let rType = isLastOverall ? 'double' : 'single';
+        /* check if this measure itself is rit-end */
+        if (m.bar === 'rit-end') rType = 'rit-end';
+        rowEl.appendChild(makeBarlineRight(rType));
+      }
+    });
+
+    /* slot-count controls row — one cell per measure */
+    const ctrlRow = document.createElement('div');
+    ctrlRow.className = 'slot-ctrls';
+    /* spacer for left barline */
+    ctrlRow.appendChild(Object.assign(document.createElement('div'), {style: 'width:8px;flex-shrink:0'}));
+    rowMeasures.forEach((m, localIdx) => {
+      const globalIdx = rowStart + localIdx;
+      const cell = document.createElement('div');
+      cell.className = 'slot-ctrl-cell';
+      const lbl = document.createElement('span');
+      lbl.className = 'slot-ctrl-lbl';
+      lbl.textContent = 'lacunas:';
+      cell.appendChild(lbl);
+      [1,2,4].forEach(n => {
+        const b = document.createElement('button');
+        b.className = 'slot-opt' + (m.slots === n ? ' active' : '');
+        b.textContent = n;
+        b.onclick = () => {
+          m.slots = n;
+          /* clear chords that exceed new slot count */
+          if (m.chords) Object.keys(m.chords).forEach(k => { if (parseInt(k) >= n) delete m.chords[k]; });
+          save();
+          rebuildStaff(sec);
+        };
+        cell.appendChild(b);
+      });
+      ctrlRow.appendChild(cell);
+    });
+    container.appendChild(rowEl);
+    container.appendChild(ctrlRow);
+  }
+}
+
+/* ── Barline builders ── */
+function barlineInnerHTML(type) {
+  if (type === 'rit-start') return `<div class="bl-rs"><div class="thin"></div><div class="thick"></div><div class="dots"><div class="dot"></div><div class="dot"></div></div></div>`;
+  if (type === 'rit-end')   return `<div class="bl-re"><div class="dots"><div class="dot"></div><div class="dot"></div></div><div class="thin"></div><div class="thick"></div></div>`;
+  if (type === 'double')    return `<div class="bl-d"><div class="b"></div><div class="b"></div></div>`;
+  return `<div class="bl-s"></div>`;
+}
+
+function makeBarline(type, mIdx, sec) {
+  const wrap = document.createElement('div');
+  wrap.className = 'bl-wrap';
+
+  const inner = document.createElement('div');
+  inner.style.cssText = 'display:flex;align-items:stretch;height:100%;';
+  inner.id = `bli-${sec.id}-${mIdx}`;
+  inner.innerHTML = barlineInnerHTML(type);
+  wrap.appendChild(inner);
+
+  /* popup */
+  const popup = document.createElement('div');
+  popup.className = 'bl-popup';
+  popup.innerHTML = `<span class="bp-lbl">Tipo de barra</span>` +
+    BAR_TYPES.map(bt => `<button class="bp-item${type===bt.id?' sel':''}" data-bt="${bt.id}">${bt.sym} — ${bt.label}</button>`).join('');
+  popup.querySelectorAll('.bp-item').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const bt = btn.dataset.bt;
+      sec.measures[mIdx].bar = bt;
+      save();
+      inner.innerHTML = barlineInnerHTML(bt);
+      popup.querySelectorAll('.bp-item').forEach(b => b.classList.toggle('sel', b.dataset.bt === bt));
+      popup.classList.remove('open');
+      openPopup = null;
+    };
+  });
+  wrap.appendChild(popup);
+
+  /* trigger dot */
+  const trigger = document.createElement('div');
+  trigger.className = 'bl-trigger';
+  trigger.innerHTML = '<div class="bl-dot"></div>';
+  trigger.onclick = (e) => {
+    e.stopPropagation();
+    if (openPopup && openPopup !== popup) openPopup.classList.remove('open');
+    const isOpen = popup.classList.contains('open');
+    popup.classList.toggle('open', !isOpen);
+    openPopup = isOpen ? null : popup;
+  };
+  wrap.appendChild(trigger);
+
+  return wrap;
+}
+
+function makeBarlineRight(type) {
+  const wrap = document.createElement('div');
+  wrap.className = 'bl-wrap';
+  wrap.style.pointerEvents = 'none'; /* right-end bars are display only */
+  wrap.innerHTML = barlineInnerHTML(type);
+  return wrap;
+}
+
+/* ── Helpers ── */
+function rebuildStaff(sec) {
+  const w = document.getElementById('staff-' + sec.id);
+  if (w) buildStaff(w, sec);
+}
+
+function updateCount(sec) {
+  const el = document.getElementById('cnt-' + sec.id);
+  if (el) el.textContent = sec.measures.length;
+}
+
+function addSection() {
+  const s = song(); if (!s) return;
+  const names = ['Intro','Verso 1','Verso 2','Pré-refrão','Refrão','Ponte','Outro'];
+  const used = s.sections.map(sc => sc.name);
+  const name = names.find(n => !used.includes(n)) || 'Seção';
+  s.sections.push({ id: uid(), name, measures: [defaultMeasure(), defaultMeasure(), defaultMeasure(), defaultMeasure()] });
+  save(); renderSheet();
+}
+
+function removeSection(secId) {
+  const s = song(); if (!s) return;
+  if (s.sections.length <= 1) { toast('A música precisa ter ao menos uma seção.'); return; }
+  s.sections = s.sections.filter(sc => sc.id !== secId);
+  save(); renderSheet();
+}
+
+document.addEventListener('click', () => { if (openPopup) { openPopup.classList.remove('open'); openPopup = null; } });
+
+/* ── PDF export ── */
+function exportPDF() {
+  const s = song();
+  if (!s) { toast('Selecione uma música primeiro.'); return; }
+  const data = s.sections.map(sec => ({
+    name: sec.name,
+    measures: sec.measures.map(m => ({
+      bar: m.bar || 'single',
+      slots: m.slots || 1,
+      chords: m.chords || {},
+      casa: m.casa || null
+    }))
+  }));
+  const slug = (s.title||'cifragem').replace(/\s+/g,'_').toLowerCase();
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(`Gere um PDF de cifragem com Python + reportlab em /mnt/user-data/outputs/${slug}.pdf
+
+TÍTULO: ${s.title||'Cifragem'}
+TOM: ${s.key||'não especificado'}
+
+ESTRUTURA JSON:
+${JSON.stringify(data, null, 2)}
+
+LAYOUT A4, margens 2cm, Helvetica:
+- Cabeçalho: título 18pt negrito centralizado + tom 11pt à direita
+- Seção: nome 10pt negrito maiúsculo + linha fina
+- 4 compassos por linha, altura 42pt
+- Cada compasso dividido em (slots) partes iguais por linhas tracejadas FINAS (não barras)
+- Chord em Helvetica-Bold 14pt centralizado em cada slot; se vazio, traço cinza claro
+- Barras: single=1.5pt, double=2×1.5pt, rit-start=thick+thin+dots, rit-end=dots+thin+thick
+- Casa: colchete 3 lados com label`);
+    toast('Enviado — PDF gerado em instantes.');
+  } else {
+    toast('Função disponível ao rodar via Claude.');
+  }
+}
+
+/* ── Utils ── */
+function x(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ── Init ── */
+renderSidebar();
+if (songs.length) selectSong(songs[0].id); else showNoSong();
+</script>
+</body>
+</html>

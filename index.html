@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cifragem — Template</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500&display=swap');
 
@@ -562,21 +563,210 @@ function removeSection(secId) {
 
 document.addEventListener('click', () => { if (openPopup) { openPopup.classList.remove('open'); openPopup = null; } });
 
-/* ── PDF export ── */
+/* ── PDF export (jsPDF — runs entirely in browser) ── */
 function exportPDF() {
   const s = song();
   if (!s) { toast('Selecione uma música primeiro.'); return; }
-  const data = s.sections.map(sec => ({
-    name: sec.name,
-    measures: sec.measures.map(m => ({ bar: m.bar||'single', slots: m.slots||1, chords: m.chords||{}, casa: m.casa||null }))
-  }));
-  const slug = (s.title||'cifragem').replace(/\s+/g,'_').toLowerCase();
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(`Gere um PDF de cifragem com Python + reportlab em /mnt/user-data/outputs/${slug}.pdf\n\nTÍTULO: ${s.title||'Cifragem'}\nTOM: ${s.key||'não especificado'}\n\nESTRUTURA JSON:\n${JSON.stringify(data, null, 2)}\n\nLAYOUT A4, margens 2cm, Helvetica:\n- Cabeçalho: título 18pt negrito centralizado + tom 11pt à direita\n- Seção: nome 10pt negrito maiúsculo + linha fina\n- 4 compassos por linha, altura 42pt\n- Cada compasso dividido em (slots) partes iguais por linhas tracejadas FINAS\n- Chord em Helvetica-Bold 14pt centralizado em cada slot; se vazio, traço cinza claro\n- Barras: single=1.5pt, double=2×1.5pt, rit-start=thick+thin+dots, rit-end=dots+thin+thick\n- Casa: colchete 3 lados com label`);
-    toast('Enviado — PDF gerado em instantes.');
-  } else {
-    toast('Função disponível ao rodar via Claude.');
+  if (!window.jspdf) { toast('Biblioteca PDF ainda carregando, tente novamente.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  /* page metrics */
+  const PW = 210, PH = 297;
+  const ML = 18, MR = 18, MT = 18, MB = 18;
+  const CW = PW - ML - MR;   /* content width */
+  const MH = 14;              /* measure height mm */
+  const GAP_ROW  = 10;        /* vertical gap between staff rows */
+  const GAP_SEC  = 8;         /* extra gap between sections */
+  const CASA_H   = 4;         /* casa bracket height */
+
+  /* colours */
+  const INK  = [25, 24, 15];
+  const MUTE = [160, 150, 130];
+  const RULE = [210, 200, 185];
+
+  let y = MT;
+
+  function checkPage(need) {
+    if (y + need > PH - MB) { doc.addPage(); y = MT; }
   }
+
+  /* ── Header ── */
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...INK);
+  doc.text(s.title || 'Cifragem', PW / 2, y + 6, { align: 'center' });
+  if (s.key) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...MUTE);
+    doc.text('Tom: ' + s.key, ML + CW, y + 6, { align: 'right' });
+  }
+  y += 12;
+
+  /* ── Draw one barline ── */
+  function drawBarline(type, bx, by, bh) {
+    doc.setDrawColor(...INK);
+    if (type === 'single') {
+      doc.setLineWidth(0.4);
+      doc.line(bx, by, bx, by + bh);
+
+    } else if (type === 'double') {
+      doc.setLineWidth(0.4);
+      doc.line(bx,       by, bx,       by + bh);
+      doc.line(bx + 0.8, by, bx + 0.8, by + bh);
+
+    } else if (type === 'rit-start') {
+      /* thin | thick : dots */
+      doc.setLineWidth(0.4);
+      doc.line(bx, by, bx, by + bh);
+      doc.setLineWidth(1.0);
+      doc.line(bx + 1.2, by, bx + 1.2, by + bh);
+      doc.setFillColor(...INK);
+      const mid = by + bh / 2;
+      doc.circle(bx + 3.2, mid - 1.4, 0.8, 'F');
+      doc.circle(bx + 3.2, mid + 1.4, 0.8, 'F');
+
+    } else if (type === 'rit-end') {
+      /* dots : thick | thin */
+      doc.setFillColor(...INK);
+      const mid = by + bh / 2;
+      doc.circle(bx, mid - 1.4, 0.8, 'F');
+      doc.circle(bx, mid + 1.4, 0.8, 'F');
+      doc.setLineWidth(1.0);
+      doc.line(bx + 1.8, by, bx + 1.8, by + bh);
+      doc.setLineWidth(0.4);
+      doc.line(bx + 3.0, by, bx + 3.0, by + bh);
+    }
+  }
+
+  /* barline widths */
+  function barW(type) {
+    if (type === 'rit-start' || type === 'rit-end') return 4.5;
+    if (type === 'double') return 2.0;
+    return 0.8;
+  }
+
+  /* ── Draw one staff row ── */
+  function drawRow(rowMeasures, isLastRow) {
+    /* calculate available width after barlines */
+    const firstBar = rowMeasures[0].bar || 'single';
+    const lastBarType = isLastRow ? 'double' : 'single';
+    let totalBarW = barW(firstBar) + barW(lastBarType);
+    for (let i = 1; i < rowMeasures.length; i++) totalBarW += barW('single');
+    const totalMW = CW - totalBarW;
+    const mw = totalMW / rowMeasures.length;
+
+    let cx = ML;
+
+    rowMeasures.forEach((m, i) => {
+      const bt = m.bar || 'single';
+      const bw = barW(bt);
+
+      /* left barline */
+      drawBarline(bt, cx, y, MH);
+      cx += bw;
+
+      /* casa bracket */
+      if (m.casa) {
+        doc.setDrawColor(...INK);
+        doc.setLineWidth(0.4);
+        /* top line */
+        doc.line(cx, y - CASA_H, cx + mw, y - CASA_H);
+        /* left leg */
+        doc.line(cx, y - CASA_H, cx, y);
+        /* right leg only if next measure has different/no casa */
+        const nextCasa = i + 1 < rowMeasures.length ? rowMeasures[i+1].casa : null;
+        if (!nextCasa || nextCasa !== m.casa) {
+          doc.line(cx + mw, y - CASA_H, cx + mw, y);
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(...INK);
+        doc.text(m.casa + '.', cx + 0.8, y - CASA_H + 3);
+      }
+
+      /* top & bottom staff lines across measure */
+      doc.setDrawColor(...INK);
+      doc.setLineWidth(0.4);
+      doc.line(cx, y,        cx + mw, y);
+      doc.line(cx, y + MH,   cx + mw, y + MH);
+
+      /* slot dividers (dashed) and chords */
+      const n = m.slots || 1;
+      const sw = mw / n;
+      for (let sl = 0; sl < n; sl++) {
+        const sx = cx + sl * sw;
+
+        /* dashed divider between slots */
+        if (sl > 0) {
+          doc.setDrawColor(...RULE);
+          doc.setLineWidth(0.25);
+          doc.setLineDashPattern([0.8, 1.2], 0);
+          doc.line(sx, y + MH * 0.18, sx, y + MH * 0.82);
+          doc.setLineDashPattern([], 0);
+        }
+
+        /* chord text */
+        const chord = (m.chords && m.chords[String(sl)]) || '';
+        const cx2 = sx + sw / 2;
+        const cy2 = y + MH / 2 + 2.2;
+        if (chord) {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.setTextColor(...INK);
+          doc.text(chord, cx2, cy2, { align: 'center' });
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(12);
+          doc.setTextColor(...RULE);
+          doc.text('—', cx2, cy2, { align: 'center' });
+        }
+      }
+
+      cx += mw;
+    });
+
+    /* final right barline */
+    drawBarline(lastBarType, cx, y, MH);
+    y += MH;
+  }
+
+  /* ── Sections ── */
+  for (const sec of s.sections) {
+    if (!Array.isArray(sec.measures) || !sec.measures.length) continue;
+
+    checkPage(GAP_SEC + 6 + MH + GAP_ROW);
+    y += GAP_SEC;
+
+    /* section label */
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTE);
+    doc.text((sec.name || 'Seção').toUpperCase(), ML, y + 3);
+    doc.setDrawColor(...RULE);
+    doc.setLineWidth(0.25);
+    doc.line(ML + doc.getTextWidth((sec.name||'Seção').toUpperCase()) + 2, y + 2.5, ML + CW, y + 2.5);
+    y += 7;
+
+    /* rows of 4 */
+    const measures = sec.measures;
+    for (let rs = 0; rs < measures.length; rs += 4) {
+      const row = measures.slice(rs, rs + 4);
+      const isLastRow = rs + 4 >= measures.length;
+      const hasCasa = row.some(m => m.casa);
+      checkPage((hasCasa ? CASA_H : 0) + MH + GAP_ROW);
+      if (hasCasa) y += CASA_H;
+      drawRow(row, isLastRow);
+      y += GAP_ROW;
+    }
+  }
+
+  /* ── Save ── */
+  const slug = (s.title || 'cifragem').replace(/\s+/g, '_').toLowerCase();
+  doc.save(slug + '.pdf');
+  toast('PDF gerado!');
 }
 
 /* ── Utils ── */

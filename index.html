@@ -1,789 +1,765 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Cifragem — Template</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500&display=swap');
+:root{
+  --ink:#19180f;--ink-soft:#4a4435;--ink-mute:#9b9180;
+  --paper:#f8f4ee;--paper-2:#ede8df;--paper-3:#e1dbd0;
+  --rule:#ccc4b5;--rule-soft:#ddd8ce;
+  --accent:#2d5fa6;--accent-h:#1e4480;--danger:#9b2e24;
+  --staff:#19180f;--radius:4px;--mh:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);font-size:14px}
+.app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:46px 1fr;height:100vh;overflow:hidden}
 
-  :root {
-    --ink:       #19180f;
-    --ink-soft:  #4a4435;
-    --ink-mute:  #9b9180;
-    --paper:     #f8f4ee;
-    --paper-2:   #ede8df;
-    --paper-3:   #e1dbd0;
-    --rule:      #ccc4b5;
-    --rule-soft: #ddd8ce;
-    --accent:    #2d5fa6;
-    --accent-h:  #1e4480;
-    --danger:    #9b2e24;
-    --staff:     #19180f;
-    --radius:    4px;
-    --mh:        52px;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); font-size: 14px; }
+/* topbar */
+.topbar{grid-column:1/-1;background:var(--ink);display:flex;align-items:center;gap:10px;padding:0 16px}
+.logo{font-family:'IM Fell English',serif;font-size:18px;color:var(--paper);flex-shrink:0}
+.logo em{color:#888;font-style:italic}
+.vtag{font-size:10px;color:#666;letter-spacing:.05em}
+.tgap{flex:1}
+.tb-btn{background:none;border:1px solid rgba(255,255,255,.2);color:var(--paper);padding:5px 12px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap}
+.tb-btn:hover{background:rgba(255,255,255,.1)}
+.tb-btn.prim{background:var(--accent);border-color:var(--accent)}
+.tb-btn.prim:hover{background:var(--accent-h)}
+.tb-btn.ghost{border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6)}
+.tb-btn.ghost:hover{background:rgba(255,255,255,.08);color:var(--paper)}
 
-  .app { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 46px 1fr; height: 100vh; overflow: hidden; }
+/* sidebar */
+.sidebar{background:var(--paper-2);border-right:1px solid var(--rule);overflow-y:auto;display:flex;flex-direction:column}
+.sb-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--rule)}
+.sb-title{font-family:'IM Fell English',serif;font-size:12px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+.sb-new{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+.sb-new:hover{background:var(--accent-h)}
+.song-item{padding:8px 14px;cursor:pointer;border-left:3px solid transparent}
+.song-item:hover{background:var(--paper-3)}
+.song-item.active{background:var(--paper-3);border-left-color:var(--accent)}
+.song-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-key{font-size:11px;color:var(--ink-mute);margin-top:1px}
 
-  /* topbar */
-  .topbar { grid-column: 1/-1; background: var(--ink); display: flex; align-items: center; gap: 14px; padding: 0 18px; }
-  .logo { font-family: 'IM Fell English', serif; font-size: 18px; color: var(--paper); flex-shrink: 0; }
-  .logo em { color: #888; font-style: italic; }
-  .tgap { flex: 1; }
-  .version-tag { font-size: 10px; color: #666; letter-spacing: 0.05em; }
-  .tb-btn { background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--paper); padding: 5px 13px; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-family: inherit; }
-  .tb-btn:hover { background: rgba(255,255,255,0.1); }
-  .tb-btn.prim { background: var(--accent); border-color: var(--accent); }
-  .tb-btn.prim:hover { background: var(--accent-h); }
+/* main */
+.main{overflow-y:auto;display:flex;flex-direction:column}
 
-  /* sidebar */
-  .sidebar { background: var(--paper-2); border-right: 1px solid var(--rule); overflow-y: auto; display: flex; flex-direction: column; }
-  .sb-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
-  .sb-title { font-family: 'IM Fell English', serif; font-size: 12px; color: var(--ink-soft); letter-spacing: 0.06em; text-transform: uppercase; }
-  .sb-new { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
-  .sb-new:hover { background: var(--accent-h); }
-  .song-item { padding: 8px 14px; cursor: pointer; border-left: 3px solid transparent; }
-  .song-item:hover { background: var(--paper-3); }
-  .song-item.active { background: var(--paper-3); border-left-color: var(--accent); }
-  .song-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .song-key  { font-size: 11px; color: var(--ink-mute); margin-top: 1px; }
+/* welcome */
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:40px 24px;text-align:center;position:relative;overflow:hidden}
+.wlc-staff{position:absolute;left:0;right:0;pointer-events:none;opacity:.04;display:flex;flex-direction:column;gap:14px;top:50%;transform:translateY(-50%)}
+.wlc-staff-line{height:1.5px;background:var(--ink)}
+.wlc-clef{font-family:'IM Fell English',serif;font-size:72px;line-height:1;color:var(--ink);opacity:.12;margin-bottom:28px;user-select:none}
+.wlc-title{font-family:'IM Fell English',serif;font-size:26px;color:var(--ink);margin-bottom:10px;line-height:1.2}
+.wlc-sub{font-size:14px;color:var(--ink-mute);max-width:320px;line-height:1.6;margin-bottom:32px}
+.wlc-btn{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);border:none;border-radius:6px;padding:13px 28px;font-size:15px;font-family:'IM Fell English',serif;cursor:pointer;transition:opacity .15s}
+.wlc-btn:hover{opacity:.85}
 
-  /* main */
-  .main { overflow-y: auto; display: flex; flex-direction: column; }
+/* no-song */
+.no-song{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-mute);gap:8px}
+.no-song-glyph{font-family:'IM Fell English',serif;font-size:48px;opacity:.12}
+.no-song-txt{font-size:13px;font-style:italic}
 
-  /* ── Welcome screen ── */
-  .welcome {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 0; padding: 40px 24px; text-align: center;
-  }
-  .wlc-clef {
-    font-family: 'IM Fell English', serif;
-    font-size: 72px; line-height: 1;
-    color: var(--ink); opacity: 0.12;
-    margin-bottom: 28px;
-    user-select: none;
-  }
-  .wlc-title {
-    font-family: 'IM Fell English', serif;
-    font-size: 26px; color: var(--ink);
-    margin-bottom: 10px; line-height: 1.2;
-  }
-  .wlc-sub {
-    font-size: 14px; color: var(--ink-mute);
-    max-width: 320px; line-height: 1.6;
-    margin-bottom: 32px;
-  }
-  .wlc-btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--ink); color: var(--paper);
-    border: none; border-radius: 6px;
-    padding: 13px 28px; font-size: 15px;
-    font-family: 'IM Fell English', serif;
-    cursor: pointer; transition: opacity 0.15s;
-    letter-spacing: 0.02em;
-  }
-  .wlc-btn:hover { opacity: 0.85; }
-  .wlc-btn-icon {
-    font-size: 20px; line-height: 1;
-    font-family: serif;
-  }
-  /* decorative staff lines behind the welcome */
-  .wlc-staff {
-    position: absolute; left: 0; right: 0;
-    pointer-events: none; opacity: 0.04;
-    display: flex; flex-direction: column; gap: 14px;
-    top: 50%; transform: translateY(-50%);
-  }
-  .wlc-staff-line { height: 1.5px; background: var(--ink); }
-  .welcome { position: relative; overflow: hidden; }
+#songEditor{display:none;flex-direction:column;flex:1;overflow:hidden}
 
-  /* no-song (when songs exist but none selected) */
-  .no-song {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    color: var(--ink-mute); gap: 8px;
-  }
-  .no-song-glyph { font-family: 'IM Fell English', serif; font-size: 48px; opacity: 0.12; }
-  .no-song-txt { font-size: 13px; font-style: italic; }
+/* meta bar */
+.meta-bar{display:flex;align-items:flex-end;gap:12px;padding:10px 20px 9px;border-bottom:1px solid var(--rule);flex-wrap:wrap;flex-shrink:0}
+.mf{display:flex;flex-direction:column;gap:3px}
+.ml{font-size:10px;color:var(--ink-mute);letter-spacing:.08em;text-transform:uppercase}
+.mi{border:none;border-bottom:1px solid var(--rule);background:transparent;outline:none;font-family:'IM Fell English',serif;font-size:18px;color:var(--ink);padding:2px 0;width:190px}
+.mi.sm{font-family:'Inter',sans-serif;font-size:13px;width:86px}
+.mi:focus{border-bottom-color:var(--accent)}
+.mgap{flex:1}
+.del-btn{border:1px solid var(--rule);background:none;color:var(--ink-mute);padding:5px 10px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:inherit}
+.del-btn:hover{border-color:var(--danger);color:var(--danger)}
 
-  #songEditor { display: none; flex-direction: column; flex: 1; }
+/* ── Transpose bar ── */
+.transpose-bar{display:flex;align-items:center;gap:8px;padding:7px 20px;border-bottom:1px solid var(--rule);background:var(--paper-2);flex-shrink:0;flex-wrap:wrap}
+.tr-label{font-size:11px;color:var(--ink-mute);letter-spacing:.05em;text-transform:uppercase;margin-right:2px}
+.tr-semi{display:flex;align-items:center;gap:4px}
+.tr-btn{width:26px;height:26px;border:1px solid var(--rule);background:var(--paper);color:var(--ink-soft);border-radius:3px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-family:inherit;font-weight:500;line-height:1}
+.tr-btn:hover{background:var(--paper-3)}
+.tr-offset{font-size:12px;font-weight:500;min-width:28px;text-align:center;color:var(--ink)}
+.tr-sep{width:1px;height:20px;background:var(--rule);margin:0 4px}
+.tr-key-label{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em}
+.tr-key-select{border:1px solid var(--rule);background:var(--paper);color:var(--ink);font-family:'IM Fell English',serif;font-size:14px;padding:3px 6px;border-radius:3px;cursor:pointer;outline:none}
+.tr-key-select:focus{border-color:var(--accent)}
+.tr-reset{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0 2px;text-decoration:underline}
+.tr-reset:hover{color:var(--accent-h)}
 
-  /* meta bar */
-  .meta-bar { display: flex; align-items: flex-end; gap: 14px; padding: 11px 22px 10px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
-  .mf { display: flex; flex-direction: column; gap: 3px; }
-  .ml { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; }
-  .mi { border: none; border-bottom: 1px solid var(--rule); background: transparent; outline: none; font-family: 'IM Fell English', serif; font-size: 18px; color: var(--ink); padding: 2px 0; width: 200px; }
-  .mi.sm { font-family: 'Inter', sans-serif; font-size: 13px; width: 90px; }
-  .mi:focus { border-bottom-color: var(--accent); }
-  .mgap { flex: 1; }
-  .del-btn { border: 1px solid var(--rule); background: none; color: var(--ink-mute); padding: 5px 10px; border-radius: var(--radius); cursor: pointer; font-size: 12px; font-family: inherit; }
-  .del-btn:hover { border-color: var(--danger); color: var(--danger); }
+/* sheet */
+.sheet{flex:1;padding:18px 22px 48px;overflow-y:auto}
+.add-sec-row{display:flex;justify-content:center;margin-top:16px}
+.add-sec-btn{border:1px dashed var(--rule);background:none;color:var(--ink-mute);padding:7px 20px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-family:inherit}
+.add-sec-btn:hover{background:var(--paper-2)}
 
-  /* sheet */
-  .sheet { flex: 1; padding: 20px 24px 48px; }
-  .add-sec-row { display: flex; justify-content: center; margin-top: 16px; }
-  .add-sec-btn { border: 1px dashed var(--rule); background: none; color: var(--ink-mute); padding: 7px 20px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-family: inherit; }
-  .add-sec-btn:hover { background: var(--paper-2); }
+/* section */
+.sec-block{margin-bottom:28px}
+.sec-head{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.sec-name-input{border:none;border-bottom:1px solid var(--rule-soft);background:transparent;font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);outline:none;width:110px;padding:2px 0}
+.sec-name-input:focus{border-bottom-color:var(--accent)}
+.sec-line{flex:1;height:1px;background:var(--rule-soft)}
+.sec-ctrl{display:flex;align-items:center;gap:4px}
+.sc-lbl{font-size:11px;color:var(--ink-mute)}
+.sc-btn{width:20px;height:20px;border:1px solid var(--rule);background:var(--paper-2);color:var(--ink-soft);border-radius:3px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1}
+.sc-btn:hover{background:var(--paper-3)}
+.sc-val{font-size:12px;font-weight:500;min-width:16px;text-align:center;color:var(--ink)}
+/* section action buttons */
+.sec-action{border:none;background:none;color:var(--ink-mute);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:3px;font-family:inherit;line-height:1.4}
+.sec-action:hover{background:var(--paper-3);color:var(--ink-soft)}
+.sec-rm{border:none;background:none;color:var(--ink-mute);cursor:pointer;font-size:17px;line-height:1;padding:0 3px;margin-left:1px}
+.sec-rm:hover{color:var(--danger)}
 
-  /* section */
-  .sec-block { margin-bottom: 28px; }
-  .sec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-  .sec-name-input { border: none; border-bottom: 1px solid var(--rule-soft); background: transparent; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); outline: none; width: 120px; padding: 2px 0; }
-  .sec-name-input:focus { border-bottom-color: var(--accent); }
-  .sec-line { flex: 1; height: 1px; background: var(--rule-soft); }
-  .sec-ctrl { display: flex; align-items: center; gap: 5px; }
-  .sc-lbl { font-size: 11px; color: var(--ink-mute); }
-  .sc-btn { width: 20px; height: 20px; border: 1px solid var(--rule); background: var(--paper-2); color: var(--ink-soft); border-radius: 3px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; font-family: inherit; line-height: 1; }
-  .sc-btn:hover { background: var(--paper-3); }
-  .sc-val { font-size: 12px; font-weight: 500; min-width: 16px; text-align: center; color: var(--ink); }
-  .sec-rm { border: none; background: none; color: var(--ink-mute); cursor: pointer; font-size: 17px; line-height: 1; padding: 0 3px; margin-left: 2px; }
-  .sec-rm:hover { color: var(--danger); }
+/* staff */
+.staff-row{display:flex;align-items:stretch;margin-bottom:10px}
+.bl-wrap{display:flex;align-items:stretch;flex-shrink:0;border-top:1.5px solid var(--staff);border-bottom:1.5px solid var(--staff);position:relative}
+.bl-s{width:1.5px;background:var(--staff)}
+.bl-d{display:flex;gap:2.5px}
+.bl-d .b{width:1.5px;background:var(--staff)}
+.bl-rs{display:flex;align-items:center;gap:2px;padding-right:4px}
+.bl-rs .thick{width:3px;background:var(--staff);align-self:stretch}
+.bl-rs .thin{width:1.5px;background:var(--staff);align-self:stretch}
+.bl-rs .dots{display:flex;flex-direction:column;gap:6px}
+.bl-re{display:flex;align-items:center;gap:2px;padding-left:4px}
+.bl-re .thick{width:3px;background:var(--staff);align-self:stretch}
+.bl-re .thin{width:1.5px;background:var(--staff);align-self:stretch}
+.bl-re .dots{display:flex;flex-direction:column;gap:6px}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--staff);flex-shrink:0}
+.bl-trigger{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:2px;cursor:pointer;z-index:2}
+.bl-dot{width:5px;height:5px;border-radius:50%;background:var(--rule);opacity:0;transition:opacity .15s}
+.bl-wrap:hover .bl-dot{opacity:1}
 
-  /* staff */
-  .staff-row { display: flex; align-items: stretch; margin-bottom: 10px; }
-  .bl-wrap { display: flex; align-items: stretch; flex-shrink: 0; border-top: 1.5px solid var(--staff); border-bottom: 1.5px solid var(--staff); position: relative; }
-  .bl-s { width: 1.5px; background: var(--staff); }
-  .bl-d { display: flex; gap: 2.5px; }
-  .bl-d .b { width: 1.5px; background: var(--staff); }
-  .bl-rs { display: flex; align-items: center; gap: 2px; padding-right: 4px; }
-  .bl-rs .thick { width: 3px; background: var(--staff); align-self: stretch; }
-  .bl-rs .thin  { width: 1.5px; background: var(--staff); align-self: stretch; }
-  .bl-rs .dots  { display: flex; flex-direction: column; gap: 6px; }
-  .bl-re { display: flex; align-items: center; gap: 2px; padding-left: 4px; }
-  .bl-re .thick { width: 3px; background: var(--staff); align-self: stretch; }
-  .bl-re .thin  { width: 1.5px; background: var(--staff); align-self: stretch; }
-  .bl-re .dots  { display: flex; flex-direction: column; gap: 6px; }
-  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--staff); flex-shrink: 0; }
-  .bl-trigger { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 2px; cursor: pointer; z-index: 2; }
-  .bl-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rule); opacity: 0; transition: opacity 0.15s; }
-  .bl-wrap:hover .bl-dot { opacity: 1; }
+.measure{flex:1;min-width:0;height:var(--mh);position:relative;border-top:1.5px solid var(--staff);border-bottom:1.5px solid var(--staff);display:flex;align-items:stretch}
+.slots{display:flex;width:100%;align-items:center}
+.slot{flex:1;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.slot+.slot::before{content:'';position:absolute;left:0;top:18%;height:64%;width:1px;background:repeating-linear-gradient(to bottom,var(--rule-soft) 0,var(--rule-soft) 3px,transparent 3px,transparent 6px)}
 
-  .measure { flex: 1; min-width: 0; height: var(--mh); position: relative; border-top: 1.5px solid var(--staff); border-bottom: 1.5px solid var(--staff); display: flex; align-items: stretch; }
-  .slots { display: flex; width: 100%; align-items: center; }
-  .slot  { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
-  .slot + .slot::before { content: ''; position: absolute; left: 0; top: 18%; height: 64%; width: 1px; background: repeating-linear-gradient(to bottom, var(--rule-soft) 0, var(--rule-soft) 3px, transparent 3px, transparent 6px); }
+.slot-ctrls{display:flex}
+.slot-ctrl-cell{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;padding:3px 0}
+.slot-opt{border:1px solid var(--rule);background:var(--paper);color:var(--ink-mute);font-size:10px;padding:1px 5px;cursor:pointer;font-family:'Inter',monospace;border-radius:3px;line-height:1.5}
+.slot-opt.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.slot-ctrl-lbl{font-size:10px;color:var(--ink-mute)}
 
-  .slot-ctrls { display: flex; }
-  .slot-ctrl-cell { flex: 1; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 3px 0; }
-  .slot-opt { border: 1px solid var(--rule); background: var(--paper); color: var(--ink-mute); font-size: 10px; padding: 1px 5px; cursor: pointer; font-family: 'Inter', monospace; border-radius: 3px; line-height: 1.5; }
-  .slot-opt.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .slot-ctrl-lbl { font-size: 10px; color: var(--ink-mute); }
+.chord-input{border:none;background:transparent;text-align:center;font-family:'IM Fell English',serif;font-size:18px;color:var(--ink);outline:none;width:100%;padding:0 4px;cursor:text}
+.chord-input::placeholder{color:var(--rule)}
+.chord-input:focus{background:rgba(45,95,166,.04)}
 
-  .chord-input { border: none; background: transparent; text-align: center; font-family: 'IM Fell English', serif; font-size: 18px; color: var(--ink); outline: none; width: 100%; padding: 0 4px; cursor: text; }
-  .chord-input::placeholder { color: var(--rule); }
-  .chord-input:focus { background: rgba(45,95,166,0.04); }
+/* view mode — hide controls */
+.view-mode .slot-ctrls,.view-mode .sec-ctrl,.view-mode .sec-action,.view-mode .sec-rm,
+.view-mode .add-sec-row,.view-mode .bl-trigger,.view-mode .del-btn{display:none!important}
+.view-mode .sec-name-input{pointer-events:none}
+.view-mode .chord-input{pointer-events:none}
+.view-mode .meta-bar .mf input{pointer-events:none}
 
-  .casa-wrap { position: absolute; top: -17px; left: 0; right: 0; height: 15px; border-top: 1.5px solid var(--staff); border-left: 1.5px solid var(--staff); }
-  .casa-wrap.closed { border-right: 1.5px solid var(--staff); }
-  .casa-lbl { font-size: 10px; font-weight: 500; color: var(--ink); padding-left: 3px; line-height: 1.5; }
+.casa-wrap{position:absolute;top:-17px;left:0;right:0;height:15px;border-top:1.5px solid var(--staff);border-left:1.5px solid var(--staff)}
+.casa-wrap.closed{border-right:1.5px solid var(--staff)}
+.casa-lbl{font-size:10px;font-weight:500;color:var(--ink);padding-left:3px;line-height:1.5}
 
-  .bl-popup { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 5px 7px; display: none; flex-direction: column; gap: 3px; z-index: 20; min-width: 155px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-  .bl-popup.open { display: flex; }
-  .bp-lbl { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1px; }
-  .bp-item { background: none; border: 1px solid var(--rule); border-radius: 3px; padding: 4px 8px; font-size: 11px; font-family: 'Inter', monospace; cursor: pointer; text-align: left; color: var(--ink); }
-  .bp-item:hover, .bp-item.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.bl-popup{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--paper);border:1px solid var(--rule);border-radius:var(--radius);padding:5px 7px;display:none;flex-direction:column;gap:3px;z-index:20;min-width:155px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.bl-popup.open{display:flex}
+.bp-lbl{font-size:10px;color:var(--ink-mute);letter-spacing:.06em;text-transform:uppercase;margin-bottom:1px}
+.bp-item{background:none;border:1px solid var(--rule);border-radius:3px;padding:4px 8px;font-size:11px;font-family:'Inter',monospace;cursor:pointer;text-align:left;color:var(--ink)}
+.bp-item:hover,.bp-item.sel{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 
-  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: var(--radius); font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
-  .toast.show { opacity: 1; }
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:var(--radius);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
 
-  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
-  @media (max-width: 640px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--rule);border-radius:3px}
+@media(max-width:640px){.app{grid-template-columns:1fr}.sidebar{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
 
-  <header class="topbar">
-    <div class="logo">cifra<em>gem</em></div>
-    <span class="version-tag">v1.2</span>
-    <div class="tgap"></div>
-    <button class="tb-btn prim" onclick="exportPDF()">↓ Exportar PDF</button>
-  </header>
+<header class="topbar">
+  <div class="logo">cifra<em>gem</em></div>
+  <span class="vtag">v1.4</span>
+  <div class="tgap"></div>
+  <button class="tb-btn ghost" id="viewToggleBtn" onclick="toggleView()">👁 Visualizar</button>
+  <button class="tb-btn" onclick="printSong()">🖨 Imprimir</button>
+  <button class="tb-btn prim" onclick="exportPDF()">↓ PDF</button>
+</header>
 
-  <aside class="sidebar">
-    <div class="sb-head">
-      <span class="sb-title">Músicas</span>
-      <button class="sb-new" onclick="newSong()">+ Nova</button>
+<aside class="sidebar">
+  <div class="sb-head">
+    <span class="sb-title">Músicas</span>
+    <button class="sb-new" onclick="newSong()">+ Nova</button>
+  </div>
+  <div id="songList"></div>
+</aside>
+
+<main class="main" id="mainArea">
+  <!-- Welcome -->
+  <div class="welcome" id="welcomeScreen" style="display:none">
+    <div class="wlc-staff" aria-hidden="true">
+      <div class="wlc-staff-line"></div><div class="wlc-staff-line"></div>
+      <div class="wlc-staff-line"></div><div class="wlc-staff-line"></div>
+      <div class="wlc-staff-line"></div>
     </div>
-    <div id="songList"></div>
-  </aside>
+    <div class="wlc-clef" aria-hidden="true">𝄞</div>
+    <div class="wlc-title">Comece a sua primeira cifragem</div>
+    <div class="wlc-sub">Monte a estrutura da música, defina os compassos e preencha os acordes — tudo salvo automaticamente.</div>
+    <button class="wlc-btn" onclick="newSong()"><span style="font-size:20px">▷</span> Nova música</button>
+  </div>
 
-  <main class="main" id="mainArea">
+  <!-- No song selected -->
+  <div class="no-song" id="noSong" style="display:none">
+    <div class="no-song-glyph">𝄽</div>
+    <div class="no-song-txt">Selecione uma música na lista</div>
+  </div>
 
-    <!-- Welcome (shown when library is empty) -->
-    <div class="welcome" id="welcomeScreen" style="display:none;">
-      <div class="wlc-staff" aria-hidden="true">
-        <div class="wlc-staff-line"></div>
-        <div class="wlc-staff-line"></div>
-        <div class="wlc-staff-line"></div>
-        <div class="wlc-staff-line"></div>
-        <div class="wlc-staff-line"></div>
+  <!-- Editor -->
+  <div id="songEditor">
+    <div class="meta-bar">
+      <div class="mf">
+        <div class="ml">Título</div>
+        <input class="mi" id="fTitle" placeholder="Nome da música" oninput="saveMeta()"/>
       </div>
-      <div class="wlc-clef" aria-hidden="true">𝄞</div>
-      <div class="wlc-title">Comece a sua primeira cifragem</div>
-      <div class="wlc-sub">Monte a estrutura da música, defina os compassos e preencha os acordes — tudo salvo automaticamente.</div>
-      <button class="wlc-btn" onclick="newSong()">
-        <span class="wlc-btn-icon">▷</span>
-        Nova música
-      </button>
-    </div>
-
-    <!-- No song selected (when library has songs but none active) -->
-    <div class="no-song" id="noSong" style="display:none;">
-      <div class="no-song-glyph">𝄽</div>
-      <div class="no-song-txt">Selecione uma música na lista</div>
-    </div>
-
-    <!-- Editor -->
-    <div id="songEditor">
-      <div class="meta-bar">
-        <div class="mf">
-          <div class="ml">Título</div>
-          <input class="mi" id="fTitle" placeholder="Nome da música" oninput="saveMeta()" />
-        </div>
-        <div class="mf">
-          <div class="ml">Tom</div>
-          <input class="mi sm" id="fKey" placeholder="Ex: G maior" oninput="saveMeta()" />
-        </div>
-        <div class="mgap"></div>
-        <button class="del-btn" onclick="deleteSong()">Excluir</button>
+      <div class="mf">
+        <div class="ml">Tom original</div>
+        <input class="mi sm" id="fKey" placeholder="Ex: G maior" oninput="saveMeta()"/>
       </div>
-      <div class="sheet" id="sheet"></div>
+      <div class="mgap"></div>
+      <button class="del-btn" onclick="deleteSong()">Excluir</button>
     </div>
 
-  </main>
+    <!-- Transpose bar -->
+    <div class="transpose-bar">
+      <span class="tr-label">Transpor:</span>
+      <div class="tr-semi">
+        <button class="tr-btn" onclick="transpose(-1)" title="−1 semitom">−</button>
+        <span class="tr-offset" id="trOffset">0</span>
+        <button class="tr-btn" onclick="transpose(+1)" title="+1 semitom">+</button>
+      </div>
+      <div class="tr-sep"></div>
+      <span class="tr-key-label">Tom:</span>
+      <select class="tr-key-select" id="trKeySelect" onchange="transposeToKey(this.value)">
+        <!-- filled by JS -->
+      </select>
+      <button class="tr-reset" onclick="resetTranspose()">↺ Desfazer</button>
+    </div>
+
+    <div class="sheet" id="sheet"></div>
+  </div>
+</main>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
 const STORE = 'cifragem_v2';
-let songs = (() => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } })();
-let cur = null;
-let openPopup = null;
+let songs = (()=>{ try{ return JSON.parse(localStorage.getItem(STORE))||[]; }catch{ return []; } })();
+let cur = null, openPopup = null, viewMode = false;
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
-function save() { localStorage.setItem(STORE, JSON.stringify(songs)); }
-function song() { return songs.find(s => s.id === cur); }
-function defaultMeasure() { return { slots: 1, bar: 'single', chords: {}, casa: null }; }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function save(){ localStorage.setItem(STORE, JSON.stringify(songs)); }
+function song(){ return songs.find(s=>s.id===cur); }
+function defaultMeasure(){ return {slots:1,bar:'single',chords:{},casa:null}; }
 
+/* ── Music theory ── */
+const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const ENHARMONIC = {'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb',
+                    'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'};
+/* prefer flats for these roots */
+const FLAT_KEYS = new Set(['F','Bb','Eb','Ab','Db','Gb']);
+
+function noteIndex(n){
+  let i = SHARPS.indexOf(n);
+  if(i<0) i = FLATS.indexOf(n);
+  return i;
+}
+
+function transposeNote(note, semis, preferFlat){
+  /* Parse root + modifier (m, maj7, 7, sus, add, dim, aug, °, ø, /, bass) */
+  const m = note.match(/^([A-G][b#]?)(.*)/);
+  if(!m) return note;
+  const root = m[1], suffix = m[2];
+  const idx = noteIndex(root);
+  if(idx < 0) return note;
+  const newIdx = ((idx + semis) % 12 + 12) % 12;
+  const scale = preferFlat ? FLATS : SHARPS;
+  return scale[newIdx] + suffix;
+}
+
+/* Parse a chord string that may contain bass note: e.g. G/B, Am/E */
+function transposeChord(chord, semis, preferFlat){
+  if(!chord || chord === '—') return chord;
+  /* handle slash chords */
+  const parts = chord.split('/');
+  return parts.map((p,i)=> transposeNote(p.trim(), semis, preferFlat)).join('/');
+}
+
+function detectPreferFlat(key){
+  if(!key) return false;
+  const root = key.match(/^([A-G][b#]?)/);
+  return root ? FLAT_KEYS.has(root[1]) : false;
+}
+
+/* ── Transpose state ── */
+// Each song stores originalChords snapshot before any transposition,
+// plus current offset
+function ensureOriginal(s){
+  if(s._origSections) return;
+  s._origSections = JSON.parse(JSON.stringify(s.sections));
+  s._offset = 0;
+}
+
+function applyTranspose(s, totalOffset){
+  if(!s._origSections) return;
+  const preferFlat = detectPreferFlat(s.key);
+  s.sections = s._origSections.map(sec=>({
+    ...sec,
+    measures: sec.measures.map(m=>({
+      ...m,
+      chords: Object.fromEntries(
+        Object.entries(m.chords||{}).map(([k,v])=>[k, transposeChord(v, totalOffset, preferFlat)])
+      )
+    }))
+  }));
+  s._offset = totalOffset;
+}
+
+function transpose(delta){
+  const s = song(); if(!s) return;
+  ensureOriginal(s);
+  const next = (s._offset||0) + delta;
+  applyTranspose(s, next);
+  save();
+  updateTransposeUI(s);
+  renderSheet();
+}
+
+function resetTranspose(){
+  const s = song(); if(!s || !s._origSections) return;
+  s.sections = JSON.parse(JSON.stringify(s._origSections));
+  s._offset = 0;
+  delete s._origSections; // clear snapshot so next edit becomes new baseline
+  save();
+  updateTransposeUI(s);
+  renderSheet();
+  toast('Tom original restaurado.');
+}
+
+function transposeToKey(targetKey){
+  const s = song(); if(!s || !targetKey) return;
+  /* figure out current root from fKey field */
+  const keyStr = s.key || '';
+  const rootMatch = keyStr.match(/^([A-G][b#]?)/);
+  if(!rootMatch){ toast('Defina o tom original primeiro.'); return; }
+  const currentRoot = rootMatch[1];
+  const currentIdx = noteIndex(currentRoot);
+  const targetIdx  = noteIndex(targetKey);
+  if(currentIdx < 0 || targetIdx < 0) return;
+  const delta = ((targetIdx - currentIdx) + 12) % 12;
+  ensureOriginal(s);
+  applyTranspose(s, delta);
+  save();
+  s._offset = delta;
+  updateTransposeUI(s);
+  renderSheet();
+}
+
+function updateTransposeUI(s){
+  const offset = (s && s._offset) || 0;
+  const el = document.getElementById('trOffset');
+  if(el) el.textContent = offset > 0 ? '+'+offset : String(offset);
+  /* update key selector to reflect current transposed root */
+  const sel = document.getElementById('trKeySelect');
+  if(!sel) return;
+  if(s && s.key && s._origSections){
+    const rootMatch = s.key.match(/^([A-G][b#]?)/);
+    if(rootMatch){
+      const origIdx = noteIndex(rootMatch[1]);
+      const newIdx = ((origIdx + offset)%12+12)%12;
+      const preferFlat = detectPreferFlat(s.key);
+      const scale = preferFlat ? FLATS : SHARPS;
+      sel.value = scale[newIdx];
+    }
+  } else if(s && s.key){
+    const rootMatch = s.key.match(/^([A-G][b#]?)/);
+    if(rootMatch) sel.value = rootMatch[1];
+  }
+}
+
+function buildKeySelect(){
+  const sel = document.getElementById('trKeySelect');
+  if(!sel) return;
+  const all = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
+  sel.innerHTML = '<option value="">— escolher tom —</option>' +
+    all.map(k=>`<option value="${k}">${k}</option>`).join('');
+}
+
+/* ── Bar types ── */
 const BAR_TYPES = [
-  { id: 'single',    sym: '|',   label: 'Barra simples' },
-  { id: 'double',    sym: '||',  label: 'Barra dupla' },
-  { id: 'rit-start', sym: '||:', label: 'Início ritornello' },
-  { id: 'rit-end',   sym: ':||', label: 'Fim ritornello' },
+  {id:'single', sym:'|',   label:'Barra simples'},
+  {id:'double', sym:'||',  label:'Barra dupla'},
+  {id:'rit-start',sym:'||:',label:'Início ritornello'},
+  {id:'rit-end',  sym:':||',label:'Fim ritornello'},
 ];
 
 /* ── Song CRUD ── */
-function newSong() {
-  const s = {
-    id: uid(), title: 'Nova música', key: '',
-    sections: [{ id: uid(), name: 'Intro', measures: [defaultMeasure(), defaultMeasure(), defaultMeasure(), defaultMeasure()] }]
-  };
+function newSong(){
+  const s={id:uid(),title:'Nova música',key:'',
+    sections:[{id:uid(),name:'Intro',measures:[defaultMeasure(),defaultMeasure(),defaultMeasure(),defaultMeasure()]}]};
   songs.unshift(s); save(); renderSidebar(); selectSong(s.id);
-  /* focus title after a tick so the editor is rendered */
-  setTimeout(() => { const t = document.getElementById('fTitle'); if (t) { t.select(); } }, 60);
+  setTimeout(()=>{ const t=document.getElementById('fTitle'); if(t)t.select(); },60);
 }
 
-function deleteSong() {
-  if (!cur || !confirm('Excluir esta música?')) return;
-  songs = songs.filter(s => s.id !== cur);
-  save(); cur = null; renderSidebar(); showState();
+function deleteSong(){
+  if(!cur||!confirm('Excluir esta música?')) return;
+  songs=songs.filter(s=>s.id!==cur);
+  save(); cur=null; renderSidebar(); renderEditor();
 }
 
-function selectSong(id) { cur = id; renderSidebar(); renderEditor(); }
+function selectSong(id){ cur=id; renderSidebar(); renderEditor(); }
 
-function saveMeta() {
-  const s = song(); if (!s) return;
-  s.title = document.getElementById('fTitle').value;
-  s.key   = document.getElementById('fKey').value;
+function saveMeta(){
+  const s=song(); if(!s) return;
+  s.title=document.getElementById('fTitle').value;
+  s.key=document.getElementById('fKey').value;
   save(); renderSidebar();
 }
 
+/* ── View / Print ── */
+function toggleView(){
+  viewMode=!viewMode;
+  const editor=document.getElementById('songEditor');
+  const btn=document.getElementById('viewToggleBtn');
+  editor.classList.toggle('view-mode', viewMode);
+  btn.textContent = viewMode ? '✏️ Editar' : '👁 Visualizar';
+}
+
+function printSong(){
+  const wasView = viewMode;
+  if(!viewMode){ viewMode=true; document.getElementById('songEditor').classList.add('view-mode'); }
+  window.print();
+  if(!wasView){ viewMode=false; document.getElementById('songEditor').classList.remove('view-mode'); }
+}
+
 /* ── Sidebar ── */
-function renderSidebar() {
-  const el = document.getElementById('songList');
-  el.innerHTML = songs.map(s => `
+function renderSidebar(){
+  const el=document.getElementById('songList');
+  if(!songs.length){ el.innerHTML='<div style="padding:20px 14px;font-size:13px;color:var(--ink-mute);font-style:italic;text-align:center">Nenhuma música.<br>Clique em "+ Nova".</div>'; return; }
+  el.innerHTML=songs.map(s=>`
     <div class="song-item ${s.id===cur?'active':''}" onclick="selectSong('${s.id}')">
       <div class="song-name">${x(s.title||'Sem título')}</div>
       <div class="song-key">${x(s.key||'—')}</div>
     </div>`).join('');
 }
 
-/* ── State routing ── */
-function showState() {
-  const hasSongs = songs.length > 0;
-  const hasCur   = !!song();
-  document.getElementById('welcomeScreen').style.display = (!hassongs) ? 'flex'  : 'none';
-  document.getElementById('noSong').style.display        = (hasongs && !hasCur) ? 'flex'  : 'none';
-  document.getElementById('songEditor').style.display    = hasCur               ? 'flex'  : 'none';
-}
-
-function renderEditor() {
-  const s = song();
-  // fix typo in showState: hasongs -> hasongs correction below
-  const hasSongs = songs.length > 0;
-  document.getElementById('welcomeScreen').style.display = (!hasSongs)          ? 'flex' : 'none';
-  document.getElementById('noSong').style.display        = (hasSongs && !s)     ? 'flex' : 'none';
-  document.getElementById('songEditor').style.display    = s                    ? 'flex' : 'none';
-  if (!s) return;
-  document.getElementById('fTitle').value = s.title || '';
-  document.getElementById('fKey').value   = s.key   || '';
+/* ── Editor ── */
+function renderEditor(){
+  const s=song();
+  const hasSongs=songs.length>0;
+  document.getElementById('welcomeScreen').style.display=(!hasSongs)?'flex':'none';
+  document.getElementById('noSong').style.display=(hasSongs&&!s)?'flex':'none';
+  document.getElementById('songEditor').style.display=s?'flex':'none';
+  if(!s) return;
+  document.getElementById('fTitle').value=s.title||'';
+  document.getElementById('fKey').value=s.key||'';
+  buildKeySelect();
+  updateTransposeUI(s);
   renderSheet();
 }
 
-function renderSheet() {
-  const s = song(); if (!s) return;
-  const sheet = document.getElementById('sheet');
-  sheet.innerHTML = '';
-  s.sections.forEach(sec => sheet.appendChild(buildSection(sec)));
-  const row = document.createElement('div');
-  row.className = 'add-sec-row';
-  row.innerHTML = '<button class="add-sec-btn" onclick="addSection()">+ Adicionar seção</button>';
+function renderSheet(){
+  const s=song(); if(!s) return;
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML='';
+  s.sections.forEach(sec=>sheet.appendChild(buildSection(sec)));
+  const row=document.createElement('div');
+  row.className='add-sec-row';
+  row.innerHTML='<button class="add-sec-btn" onclick="addSection()">+ Adicionar seção</button>';
   sheet.appendChild(row);
 }
 
-/* ── Build section ── */
-function buildSection(sec) {
-  if (!Array.isArray(sec.measures)) {
-    const count = sec.measures || 4;
-    sec.measures = Array.from({length: count}, () => defaultMeasure());
+/* ── Section ── */
+function buildSection(sec){
+  if(!Array.isArray(sec.measures)){
+    const c=sec.measures||4;
+    sec.measures=Array.from({length:c},()=>defaultMeasure());
   }
-  const wrap = document.createElement('div');
-  wrap.className = 'sec-block';
-  wrap.id = 'sec-' + sec.id;
+  const wrap=document.createElement('div');
+  wrap.className='sec-block'; wrap.id='sec-'+sec.id;
 
-  const head = document.createElement('div');
-  head.className = 'sec-head';
+  const head=document.createElement('div'); head.className='sec-head';
 
-  const nameIn = document.createElement('input');
-  nameIn.className = 'sec-name-input';
-  nameIn.value = sec.name || '';
-  nameIn.placeholder = 'Nome da seção';
-  nameIn.oninput = () => { sec.name = nameIn.value; save(); };
+  const nameIn=document.createElement('input');
+  nameIn.className='sec-name-input'; nameIn.value=sec.name||'';
+  nameIn.placeholder='Nome da seção';
+  nameIn.oninput=()=>{ sec.name=nameIn.value; save(); };
 
-  const line = document.createElement('div'); line.className = 'sec-line';
+  const line=document.createElement('div'); line.className='sec-line';
 
-  const ctrl = document.createElement('div'); ctrl.className = 'sec-ctrl';
-  const cLbl = document.createElement('span'); cLbl.className = 'sc-lbl'; cLbl.textContent = 'compassos:';
-  const cMinus = document.createElement('button'); cMinus.className = 'sc-btn'; cMinus.textContent = '−';
-  cMinus.onclick = () => { if (sec.measures.length > 1) { sec.measures.pop(); save(); rebuildStaff(sec); updateCount(sec); } };
-  const cVal = document.createElement('span'); cVal.className = 'sc-val'; cVal.id = 'cnt-'+sec.id; cVal.textContent = sec.measures.length;
-  const cPlus = document.createElement('button'); cPlus.className = 'sc-btn'; cPlus.textContent = '+';
-  cPlus.onclick = () => { sec.measures.push(defaultMeasure()); save(); rebuildStaff(sec); updateCount(sec); };
+  /* duplicate button */
+  const dupBtn=document.createElement('button');
+  dupBtn.className='sec-action'; dupBtn.title='Duplicar seção'; dupBtn.textContent='⧉ Duplicar';
+  dupBtn.onclick=()=>duplicateSection(sec.id);
 
-  const rmBtn = document.createElement('button');
-  rmBtn.className = 'sec-rm'; rmBtn.title = 'Remover seção'; rmBtn.textContent = '×';
-  rmBtn.onclick = () => removeSection(sec.id);
+  const ctrl=document.createElement('div'); ctrl.className='sec-ctrl';
+  const cLbl=document.createElement('span'); cLbl.className='sc-lbl'; cLbl.textContent='compassos:';
+  const cMinus=document.createElement('button'); cMinus.className='sc-btn'; cMinus.textContent='−';
+  cMinus.onclick=()=>{ if(sec.measures.length>1){ sec.measures.pop(); save(); rebuildStaff(sec); updateCount(sec); } };
+  const cVal=document.createElement('span'); cVal.className='sc-val'; cVal.id='cnt-'+sec.id; cVal.textContent=sec.measures.length;
+  const cPlus=document.createElement('button'); cPlus.className='sc-btn'; cPlus.textContent='+';
+  cPlus.onclick=()=>{ sec.measures.push(defaultMeasure()); save(); rebuildStaff(sec); updateCount(sec); };
+  const rmBtn=document.createElement('button');
+  rmBtn.className='sec-rm'; rmBtn.title='Remover seção'; rmBtn.textContent='×';
+  rmBtn.onclick=()=>removeSection(sec.id);
 
-  ctrl.append(cLbl, cMinus, cVal, cPlus);
-  head.append(nameIn, line, ctrl, rmBtn);
+  ctrl.append(cLbl,cMinus,cVal,cPlus);
+  head.append(nameIn,line,dupBtn,ctrl,rmBtn);
   wrap.appendChild(head);
 
-  const staffWrap = document.createElement('div');
-  staffWrap.id = 'staff-' + sec.id;
+  const staffWrap=document.createElement('div'); staffWrap.id='staff-'+sec.id;
   wrap.appendChild(staffWrap);
-  buildStaff(staffWrap, sec);
+  buildStaff(staffWrap,sec);
   return wrap;
 }
 
-/* ── Build staff ── */
-function buildStaff(container, sec) {
-  container.innerHTML = '';
-  const measures = sec.measures;
-  const total = measures.length;
-
-  for (let rowStart = 0; rowStart < total; rowStart += 4) {
-    const rowMeasures = measures.slice(rowStart, rowStart + 4);
-    const rowEl = document.createElement('div');
-    rowEl.className = 'staff-row';
-
-    rowMeasures.forEach((m, localIdx) => {
-      const globalIdx = rowStart + localIdx;
-      const isLastInRow = localIdx === rowMeasures.length - 1;
-      const isLastOverall = globalIdx === total - 1;
-
-      rowEl.appendChild(makeBarline(m.bar || 'single', globalIdx, sec));
-
-      const mCell = document.createElement('div');
-      mCell.className = 'measure';
-
-      if (m.casa) {
-        const cb = document.createElement('div');
-        const nextCasa = globalIdx + 1 < total ? measures[globalIdx+1].casa : null;
-        cb.className = 'casa-wrap' + (!nextCasa || nextCasa !== m.casa ? ' closed' : '');
-        cb.innerHTML = `<span class="casa-lbl">${m.casa}.</span>`;
+/* ── Staff ── */
+function buildStaff(container,sec){
+  container.innerHTML='';
+  const measures=sec.measures, total=measures.length;
+  for(let rs=0;rs<total;rs+=4){
+    const rowM=measures.slice(rs,rs+4);
+    const rowEl=document.createElement('div'); rowEl.className='staff-row';
+    rowM.forEach((m,li)=>{
+      const gi=rs+li, isLastRow=li===rowM.length-1, isLastAll=gi===total-1;
+      rowEl.appendChild(makeBarline(m.bar||'single',gi,sec));
+      const mCell=document.createElement('div'); mCell.className='measure';
+      if(m.casa){
+        const cb=document.createElement('div');
+        const nc=gi+1<total?measures[gi+1].casa:null;
+        cb.className='casa-wrap'+((!nc||nc!==m.casa)?' closed':'');
+        cb.innerHTML=`<span class="casa-lbl">${m.casa}.</span>`;
         mCell.appendChild(cb);
       }
-
-      const slotsEl = document.createElement('div');
-      slotsEl.className = 'slots';
-      const n = m.slots || 1;
-      for (let sl = 0; sl < n; sl++) {
-        const key = String(sl);
-        const inp = document.createElement('input');
-        inp.className = 'chord-input';
-        inp.type = 'text';
-        inp.placeholder = '—';
-        inp.value = (m.chords && m.chords[key]) || '';
+      const slotsEl=document.createElement('div'); slotsEl.className='slots';
+      const n=m.slots||1;
+      for(let sl=0;sl<n;sl++){
+        const key=String(sl);
+        const inp=document.createElement('input');
+        inp.className='chord-input'; inp.type='text'; inp.placeholder='—';
+        inp.value=(m.chords&&m.chords[key])||'';
         inp.setAttribute('autocomplete','off');
         inp.setAttribute('autocorrect','off');
         inp.setAttribute('autocapitalize','characters');
-        inp.addEventListener('input', () => {
-          if (!m.chords) m.chords = {};
-          m.chords[key] = inp.value;
-          save();
-        });
-        const slotDiv = document.createElement('div');
-        slotDiv.className = 'slot';
-        slotDiv.appendChild(inp);
-        slotsEl.appendChild(slotDiv);
+        inp.addEventListener('input',()=>{ if(!m.chords)m.chords={}; m.chords[key]=inp.value; save(); });
+        const sd=document.createElement('div'); sd.className='slot'; sd.appendChild(inp);
+        slotsEl.appendChild(sd);
       }
-      mCell.appendChild(slotsEl);
-      rowEl.appendChild(mCell);
-
-      if (isLastInRow) {
-        let rType = isLastOverall ? 'double' : 'single';
-        if (m.bar === 'rit-end') rType = 'rit-end';
-        rowEl.appendChild(makeBarlineRight(rType));
+      mCell.appendChild(slotsEl); rowEl.appendChild(mCell);
+      if(isLastRow){
+        let rT=isLastAll?'double':'single';
+        if(m.bar==='rit-end')rT='rit-end';
+        rowEl.appendChild(makeBarlineRight(rT));
       }
     });
-
-    /* slot controls per measure */
-    const ctrlRow = document.createElement('div');
-    ctrlRow.className = 'slot-ctrls';
-    ctrlRow.appendChild(Object.assign(document.createElement('div'), {style: 'width:8px;flex-shrink:0'}));
-    rowMeasures.forEach((m) => {
-      const cell = document.createElement('div');
-      cell.className = 'slot-ctrl-cell';
-      const lbl = document.createElement('span');
-      lbl.className = 'slot-ctrl-lbl';
-      lbl.textContent = 'lacunas:';
+    /* slot controls */
+    const ctrlRow=document.createElement('div'); ctrlRow.className='slot-ctrls';
+    ctrlRow.appendChild(Object.assign(document.createElement('div'),{style:'width:8px;flex-shrink:0'}));
+    rowM.forEach(m=>{
+      const cell=document.createElement('div'); cell.className='slot-ctrl-cell';
+      const lbl=document.createElement('span'); lbl.className='slot-ctrl-lbl'; lbl.textContent='lacunas:';
       cell.appendChild(lbl);
-      [1,2,4].forEach(n => {
-        const b = document.createElement('button');
-        b.className = 'slot-opt' + (m.slots === n ? ' active' : '');
-        b.textContent = n;
-        b.onclick = () => {
-          m.slots = n;
-          if (m.chords) Object.keys(m.chords).forEach(k => { if (parseInt(k) >= n) delete m.chords[k]; });
-          save();
-          rebuildStaff(sec);
-        };
+      [1,2,4].forEach(n=>{
+        const b=document.createElement('button');
+        b.className='slot-opt'+(m.slots===n?' active':''); b.textContent=n;
+        b.onclick=()=>{ m.slots=n; if(m.chords)Object.keys(m.chords).forEach(k=>{if(parseInt(k)>=n)delete m.chords[k];}); save(); rebuildStaff(sec); };
         cell.appendChild(b);
       });
       ctrlRow.appendChild(cell);
     });
-    container.appendChild(rowEl);
-    container.appendChild(ctrlRow);
+    container.appendChild(rowEl); container.appendChild(ctrlRow);
   }
 }
 
 /* ── Barlines ── */
-function barlineInnerHTML(type) {
-  if (type === 'rit-start') return `<div class="bl-rs"><div class="thin"></div><div class="thick"></div><div class="dots"><div class="dot"></div><div class="dot"></div></div></div>`;
-  if (type === 'rit-end')   return `<div class="bl-re"><div class="dots"><div class="dot"></div><div class="dot"></div></div><div class="thin"></div><div class="thick"></div></div>`;
-  if (type === 'double')    return `<div class="bl-d"><div class="b"></div><div class="b"></div></div>`;
-  return `<div class="bl-s"></div>`;
+function barlineHTML(t){
+  if(t==='rit-start') return`<div class="bl-rs"><div class="thin"></div><div class="thick"></div><div class="dots"><div class="dot"></div><div class="dot"></div></div></div>`;
+  if(t==='rit-end')   return`<div class="bl-re"><div class="dots"><div class="dot"></div><div class="dot"></div></div><div class="thin"></div><div class="thick"></div></div>`;
+  if(t==='double')    return`<div class="bl-d"><div class="b"></div><div class="b"></div></div>`;
+  return`<div class="bl-s"></div>`;
 }
-
-function makeBarline(type, mIdx, sec) {
-  const wrap = document.createElement('div');
-  wrap.className = 'bl-wrap';
-
-  const inner = document.createElement('div');
-  inner.style.cssText = 'display:flex;align-items:stretch;height:100%;';
-  inner.id = `bli-${sec.id}-${mIdx}`;
-  inner.innerHTML = barlineInnerHTML(type);
+function makeBarline(type,mIdx,sec){
+  const wrap=document.createElement('div'); wrap.className='bl-wrap';
+  const inner=document.createElement('div');
+  inner.style.cssText='display:flex;align-items:stretch;height:100%;';
+  inner.id=`bli-${sec.id}-${mIdx}`; inner.innerHTML=barlineHTML(type);
   wrap.appendChild(inner);
-
-  const popup = document.createElement('div');
-  popup.className = 'bl-popup';
-  popup.innerHTML = `<span class="bp-lbl">Tipo de barra</span>` +
-    BAR_TYPES.map(bt => `<button class="bp-item${type===bt.id?' sel':''}" data-bt="${bt.id}">${bt.sym} — ${bt.label}</button>`).join('');
-  popup.querySelectorAll('.bp-item').forEach(btn => {
-    btn.onclick = (e) => {
+  const popup=document.createElement('div'); popup.className='bl-popup';
+  popup.innerHTML=`<span class="bp-lbl">Tipo de barra</span>`+
+    BAR_TYPES.map(bt=>`<button class="bp-item${type===bt.id?' sel':''}" data-bt="${bt.id}">${bt.sym} — ${bt.label}</button>`).join('');
+  popup.querySelectorAll('.bp-item').forEach(btn=>{
+    btn.onclick=(e)=>{
       e.stopPropagation();
-      const bt = btn.dataset.bt;
-      sec.measures[mIdx].bar = bt;
-      save();
-      inner.innerHTML = barlineInnerHTML(bt);
-      popup.querySelectorAll('.bp-item').forEach(b => b.classList.toggle('sel', b.dataset.bt === bt));
-      popup.classList.remove('open');
-      openPopup = null;
+      const bt=btn.dataset.bt;
+      sec.measures[mIdx].bar=bt; save();
+      inner.innerHTML=barlineHTML(bt);
+      popup.querySelectorAll('.bp-item').forEach(b=>b.classList.toggle('sel',b.dataset.bt===bt));
+      popup.classList.remove('open'); openPopup=null;
     };
   });
   wrap.appendChild(popup);
-
-  const trigger = document.createElement('div');
-  trigger.className = 'bl-trigger';
-  trigger.innerHTML = '<div class="bl-dot"></div>';
-  trigger.onclick = (e) => {
+  const trigger=document.createElement('div'); trigger.className='bl-trigger';
+  trigger.innerHTML='<div class="bl-dot"></div>';
+  trigger.onclick=(e)=>{
     e.stopPropagation();
-    if (openPopup && openPopup !== popup) openPopup.classList.remove('open');
-    const isOpen = popup.classList.contains('open');
-    popup.classList.toggle('open', !isOpen);
-    openPopup = isOpen ? null : popup;
+    if(openPopup&&openPopup!==popup)openPopup.classList.remove('open');
+    const isOpen=popup.classList.contains('open');
+    popup.classList.toggle('open',!isOpen); openPopup=isOpen?null:popup;
   };
   wrap.appendChild(trigger);
   return wrap;
 }
-
-function makeBarlineRight(type) {
-  const wrap = document.createElement('div');
-  wrap.className = 'bl-wrap';
-  wrap.style.pointerEvents = 'none';
-  wrap.innerHTML = barlineInnerHTML(type);
+function makeBarlineRight(type){
+  const wrap=document.createElement('div'); wrap.className='bl-wrap';
+  wrap.style.pointerEvents='none'; wrap.innerHTML=barlineHTML(type);
   return wrap;
 }
 
-/* ── Helpers ── */
-function rebuildStaff(sec) { const w = document.getElementById('staff-' + sec.id); if (w) buildStaff(w, sec); }
-function updateCount(sec)  { const el = document.getElementById('cnt-' + sec.id); if (el) el.textContent = sec.measures.length; }
+/* ── Section actions ── */
+function rebuildStaff(sec){ const w=document.getElementById('staff-'+sec.id); if(w)buildStaff(w,sec); }
+function updateCount(sec){ const el=document.getElementById('cnt-'+sec.id); if(el)el.textContent=sec.measures.length; }
 
-function addSection() {
-  const s = song(); if (!s) return;
-  const names = ['Intro','Verso 1','Verso 2','Pré-refrão','Refrão','Ponte','Outro'];
-  const used = s.sections.map(sc => sc.name);
-  const name = names.find(n => !used.includes(n)) || 'Seção';
-  s.sections.push({ id: uid(), name, measures: [defaultMeasure(), defaultMeasure(), defaultMeasure(), defaultMeasure()] });
+function addSection(){
+  const s=song(); if(!s) return;
+  const names=['Intro','Verso 1','Verso 2','Pré-refrão','Refrão','Ponte','Outro'];
+  const used=s.sections.map(sc=>sc.name);
+  const name=names.find(n=>!used.includes(n))||'Seção';
+  s.sections.push({id:uid(),name,measures:[defaultMeasure(),defaultMeasure(),defaultMeasure(),defaultMeasure()]});
+  save(); renderSheet();
+  /* scroll to bottom */
+  setTimeout(()=>{ const sh=document.getElementById('sheet'); if(sh)sh.scrollTop=sh.scrollHeight; },60);
+}
+
+function duplicateSection(secId){
+  const s=song(); if(!s) return;
+  const idx=s.sections.findIndex(sc=>sc.id===secId);
+  if(idx<0) return;
+  const orig=s.sections[idx];
+  const copy=JSON.parse(JSON.stringify(orig));
+  copy.id=uid();
+  copy.name=orig.name+' (cópia)';
+  s.sections.splice(idx+1,0,copy);
   save(); renderSheet();
 }
 
-function removeSection(secId) {
-  const s = song(); if (!s) return;
-  if (s.sections.length <= 1) { toast('A música precisa ter ao menos uma seção.'); return; }
-  s.sections = s.sections.filter(sc => sc.id !== secId);
+function removeSection(secId){
+  const s=song(); if(!s) return;
+  if(s.sections.length<=1){ toast('A música precisa ter ao menos uma seção.'); return; }
+  s.sections=s.sections.filter(sc=>sc.id!==secId);
   save(); renderSheet();
 }
 
-document.addEventListener('click', () => { if (openPopup) { openPopup.classList.remove('open'); openPopup = null; } });
+document.addEventListener('click',()=>{ if(openPopup){openPopup.classList.remove('open');openPopup=null;} });
 
-/* ── PDF export (jsPDF — runs entirely in browser) ── */
-function exportPDF() {
-  const s = song();
-  if (!s) { toast('Selecione uma música primeiro.'); return; }
-  if (!window.jspdf) { toast('Biblioteca PDF ainda carregando, tente novamente.'); return; }
+/* ── PDF export ── */
+function exportPDF(){
+  const s=song();
+  if(!s){ toast('Selecione uma música primeiro.'); return; }
+  if(!window.jspdf){ toast('Biblioteca PDF ainda carregando, tente novamente.'); return; }
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const PW=210,PH=297,ML=18,MR=18,MT=18,MB=18;
+  const CW=PW-ML-MR,MH=14,GAP_ROW=10,GAP_SEC=8,CASA_H=4;
+  const INK=[25,24,15],MUTE=[160,150,130],RULE=[210,200,185];
+  let y=MT;
+  function checkPage(need){ if(y+need>PH-MB){ doc.addPage(); y=MT; } }
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-
-  /* page metrics */
-  const PW = 210, PH = 297;
-  const ML = 18, MR = 18, MT = 18, MB = 18;
-  const CW = PW - ML - MR;   /* content width */
-  const MH = 14;              /* measure height mm */
-  const GAP_ROW  = 10;        /* vertical gap between staff rows */
-  const GAP_SEC  = 8;         /* extra gap between sections */
-  const CASA_H   = 4;         /* casa bracket height */
-
-  /* colours */
-  const INK  = [25, 24, 15];
-  const MUTE = [160, 150, 130];
-  const RULE = [210, 200, 185];
-
-  let y = MT;
-
-  function checkPage(need) {
-    if (y + need > PH - MB) { doc.addPage(); y = MT; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...INK);
+  doc.text(s.title||'Cifragem',PW/2,y+6,{align:'center'});
+  if(s.key){
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...MUTE);
+    doc.text('Tom: '+s.key,ML+CW,y+6,{align:'right'});
   }
+  y+=12;
 
-  /* ── Header ── */
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(...INK);
-  doc.text(s.title || 'Cifragem', PW / 2, y + 6, { align: 'center' });
-  if (s.key) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(...MUTE);
-    doc.text('Tom: ' + s.key, ML + CW, y + 6, { align: 'right' });
-  }
-  y += 12;
-
-  /* ── Draw one barline ── */
-  function drawBarline(type, bx, by, bh) {
+  function drawBarline(type,bx,by,bh){
     doc.setDrawColor(...INK);
-    if (type === 'single') {
-      doc.setLineWidth(0.4);
-      doc.line(bx, by, bx, by + bh);
-
-    } else if (type === 'double') {
-      doc.setLineWidth(0.4);
-      doc.line(bx,       by, bx,       by + bh);
-      doc.line(bx + 0.8, by, bx + 0.8, by + bh);
-
-    } else if (type === 'rit-start') {
-      /* thin | thick : dots */
-      doc.setLineWidth(0.4);
-      doc.line(bx, by, bx, by + bh);
-      doc.setLineWidth(1.0);
-      doc.line(bx + 1.2, by, bx + 1.2, by + bh);
-      doc.setFillColor(...INK);
-      const mid = by + bh / 2;
-      doc.circle(bx + 3.2, mid - 1.4, 0.8, 'F');
-      doc.circle(bx + 3.2, mid + 1.4, 0.8, 'F');
-
-    } else if (type === 'rit-end') {
-      /* dots : thick | thin */
-      doc.setFillColor(...INK);
-      const mid = by + bh / 2;
-      doc.circle(bx, mid - 1.4, 0.8, 'F');
-      doc.circle(bx, mid + 1.4, 0.8, 'F');
-      doc.setLineWidth(1.0);
-      doc.line(bx + 1.8, by, bx + 1.8, by + bh);
-      doc.setLineWidth(0.4);
-      doc.line(bx + 3.0, by, bx + 3.0, by + bh);
+    if(type==='single'){ doc.setLineWidth(.4); doc.line(bx,by,bx,by+bh); }
+    else if(type==='double'){ doc.setLineWidth(.4); doc.line(bx,by,bx,by+bh); doc.line(bx+.8,by,bx+.8,by+bh); }
+    else if(type==='rit-start'){
+      doc.setLineWidth(.4); doc.line(bx,by,bx,by+bh);
+      doc.setLineWidth(1); doc.line(bx+1.2,by,bx+1.2,by+bh);
+      doc.setFillColor(...INK); const mid=by+bh/2;
+      doc.circle(bx+3.2,mid-1.4,.8,'F'); doc.circle(bx+3.2,mid+1.4,.8,'F');
+    } else if(type==='rit-end'){
+      doc.setFillColor(...INK); const mid=by+bh/2;
+      doc.circle(bx,mid-1.4,.8,'F'); doc.circle(bx,mid+1.4,.8,'F');
+      doc.setLineWidth(1); doc.line(bx+1.8,by,bx+1.8,by+bh);
+      doc.setLineWidth(.4); doc.line(bx+3,by,bx+3,by+bh);
     }
   }
-
-  /* barline widths */
-  function barW(type) {
-    if (type === 'rit-start' || type === 'rit-end') return 4.5;
-    if (type === 'double') return 2.0;
-    return 0.8;
-  }
-
-  /* ── Draw one staff row ── */
-  function drawRow(rowMeasures, isLastRow) {
-    /* calculate available width after barlines */
-    const firstBar = rowMeasures[0].bar || 'single';
-    const lastBarType = isLastRow ? 'double' : 'single';
-    let totalBarW = barW(firstBar) + barW(lastBarType);
-    for (let i = 1; i < rowMeasures.length; i++) totalBarW += barW('single');
-    const totalMW = CW - totalBarW;
-    const mw = totalMW / rowMeasures.length;
-
-    let cx = ML;
-
-    rowMeasures.forEach((m, i) => {
-      const bt = m.bar || 'single';
-      const bw = barW(bt);
-
-      /* left barline */
-      drawBarline(bt, cx, y, MH);
-      cx += bw;
-
-      /* casa bracket */
-      if (m.casa) {
-        doc.setDrawColor(...INK);
-        doc.setLineWidth(0.4);
-        /* top line */
-        doc.line(cx, y - CASA_H, cx + mw, y - CASA_H);
-        /* left leg */
-        doc.line(cx, y - CASA_H, cx, y);
-        /* right leg only if next measure has different/no casa */
-        const nextCasa = i + 1 < rowMeasures.length ? rowMeasures[i+1].casa : null;
-        if (!nextCasa || nextCasa !== m.casa) {
-          doc.line(cx + mw, y - CASA_H, cx + mw, y);
-        }
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
-        doc.setTextColor(...INK);
-        doc.text(m.casa + '.', cx + 0.8, y - CASA_H + 3);
+  function barW(t){ return (t==='rit-start'||t==='rit-end')?4.5:(t==='double'?2:.8); }
+  function drawRow(rowM,isLast){
+    const lastBT=isLast?'double':'single';
+    let totalBarW=barW(rowM[0].bar||'single')+barW(lastBT);
+    for(let i=1;i<rowM.length;i++)totalBarW+=barW('single');
+    const mw=(CW-totalBarW)/rowM.length;
+    let cx=ML;
+    rowM.forEach((m,i)=>{
+      const bt=m.bar||'single', bw=barW(bt);
+      drawBarline(bt,cx,y,MH); cx+=bw;
+      if(m.casa){
+        doc.setDrawColor(...INK); doc.setLineWidth(.4);
+        doc.line(cx,y-CASA_H,cx+mw,y-CASA_H);
+        doc.line(cx,y-CASA_H,cx,y);
+        const nc=i+1<rowM.length?rowM[i+1].casa:null;
+        if(!nc||nc!==m.casa)doc.line(cx+mw,y-CASA_H,cx+mw,y);
+        doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...INK);
+        doc.text(m.casa+'.',cx+.8,y-CASA_H+3);
       }
-
-      /* top & bottom staff lines across measure */
-      doc.setDrawColor(...INK);
-      doc.setLineWidth(0.4);
-      doc.line(cx, y,        cx + mw, y);
-      doc.line(cx, y + MH,   cx + mw, y + MH);
-
-      /* slot dividers (dashed) and chords */
-      const n = m.slots || 1;
-      const sw = mw / n;
-      for (let sl = 0; sl < n; sl++) {
-        const sx = cx + sl * sw;
-
-        /* dashed divider between slots */
-        if (sl > 0) {
-          doc.setDrawColor(...RULE);
-          doc.setLineWidth(0.25);
-          doc.setLineDashPattern([0.8, 1.2], 0);
-          doc.line(sx, y + MH * 0.18, sx, y + MH * 0.82);
-          doc.setLineDashPattern([], 0);
-        }
-
-        /* chord text */
-        const chord = (m.chords && m.chords[String(sl)]) || '';
-        const cx2 = sx + sw / 2;
-        const cy2 = y + MH / 2 + 2.2;
-        if (chord) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(12);
-          doc.setTextColor(...INK);
-          doc.text(chord, cx2, cy2, { align: 'center' });
-        } else {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(12);
-          doc.setTextColor(...RULE);
-          doc.text('—', cx2, cy2, { align: 'center' });
-        }
+      doc.setDrawColor(...INK); doc.setLineWidth(.4);
+      doc.line(cx,y,cx+mw,y); doc.line(cx,y+MH,cx+mw,y+MH);
+      const n=m.slots||1, sw=mw/n;
+      for(let sl=0;sl<n;sl++){
+        const sx=cx+sl*sw;
+        if(sl>0){ doc.setDrawColor(...RULE); doc.setLineWidth(.25); doc.setLineDashPattern([.8,1.2],0); doc.line(sx,y+MH*.18,sx,y+MH*.82); doc.setLineDashPattern([],0); }
+        const chord=(m.chords&&m.chords[String(sl)])||'';
+        const cx2=sx+sw/2, cy2=y+MH/2+2.2;
+        if(chord){ doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...INK); doc.text(chord,cx2,cy2,{align:'center'}); }
+        else{ doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(...RULE); doc.text('—',cx2,cy2,{align:'center'}); }
       }
-
-      cx += mw;
+      cx+=mw;
     });
-
-    /* final right barline */
-    drawBarline(lastBarType, cx, y, MH);
-    y += MH;
+    drawBarline(lastBT,cx,y,MH); y+=MH;
   }
-
-  /* ── Sections ── */
-  for (const sec of s.sections) {
-    if (!Array.isArray(sec.measures) || !sec.measures.length) continue;
-
-    checkPage(GAP_SEC + 6 + MH + GAP_ROW);
-    y += GAP_SEC;
-
-    /* section label */
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...MUTE);
-    doc.text((sec.name || 'Seção').toUpperCase(), ML, y + 3);
-    doc.setDrawColor(...RULE);
-    doc.setLineWidth(0.25);
-    doc.line(ML + doc.getTextWidth((sec.name||'Seção').toUpperCase()) + 2, y + 2.5, ML + CW, y + 2.5);
-    y += 7;
-
-    /* rows of 4 */
-    const measures = sec.measures;
-    for (let rs = 0; rs < measures.length; rs += 4) {
-      const row = measures.slice(rs, rs + 4);
-      const isLastRow = rs + 4 >= measures.length;
-      const hasCasa = row.some(m => m.casa);
-      checkPage((hasCasa ? CASA_H : 0) + MH + GAP_ROW);
-      if (hasCasa) y += CASA_H;
-      drawRow(row, isLastRow);
-      y += GAP_ROW;
+  for(const sec of s.sections){
+    if(!Array.isArray(sec.measures)||!sec.measures.length) continue;
+    checkPage(GAP_SEC+6+MH+GAP_ROW); y+=GAP_SEC;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...MUTE);
+    const secLabel=(sec.name||'Seção').toUpperCase();
+    doc.text(secLabel,ML,y+3);
+    doc.setDrawColor(...RULE); doc.setLineWidth(.25);
+    doc.line(ML+doc.getTextWidth(secLabel)+2,y+2.5,ML+CW,y+2.5);
+    y+=7;
+    const measures=sec.measures;
+    for(let rs=0;rs<measures.length;rs+=4){
+      const row=measures.slice(rs,rs+4), isLast=rs+4>=measures.length;
+      const hasCasa=row.some(m=>m.casa);
+      checkPage((hasCasa?CASA_H:0)+MH+GAP_ROW);
+      if(hasCasa)y+=CASA_H;
+      drawRow(row,isLast); y+=GAP_ROW;
     }
   }
-
-  /* ── Save ── */
-  const slug = (s.title || 'cifragem').replace(/\s+/g, '_').toLowerCase();
-  doc.save(slug + '.pdf');
-  toast('PDF gerado!');
+  const slug=(s.title||'cifragem').replace(/\s+/g,'_').toLowerCase();
+  doc.save(slug+'.pdf'); toast('PDF gerado!');
 }
 
 /* ── Utils ── */
-function x(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2800);
-}
+function x(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2800); }
 
 /* ── Init ── */
 renderSidebar();
-if (songs.length) selectSong(songs[0].id);
-else {
-  document.getElementById('welcomeScreen').style.display = 'flex';
-  document.getElementById('noSong').style.display        = 'none';
-  document.getElementById('songEditor').style.display    = 'none';
+if(songs.length) selectSong(songs[0].id);
+else{
+  document.getElementById('welcomeScreen').style.display='flex';
+  document.getElementById('noSong').style.display='none';
+  document.getElementById('songEditor').style.display='none';
 }
 </script>
 </body>
